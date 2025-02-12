@@ -1,0 +1,528 @@
+﻿@page "/dashboard"
+@rendermode @(new InteractiveAutoRenderMode(false))
+@attribute [Authorize(Roles = "Admin, User")]
+
+
+<div class="dashboard__header">
+    <h5 class="dashboard__header-title"><i class="bi bi-house-door-fill"></i>Dashboard</h5>
+    <div>
+        <a href="/incidents" class="dashboard__header-pending-incident">You have @pendingIncidentCount Pending Incident Reports</a>
+        <label class="dashboard__header-date">@formattedDate</label>
+    </div>
+</div>
+
+<div class="dashboard__card-container">
+    @foreach (var priority in priorityCounts)
+    {
+        int totalIncidents = Incident.Count();
+        double progressPercentage = totalIncidents > 0 ? (double)priority.Value / totalIncidents * 100 : 0;
+        progressPercentage = progressPercentage > 100 ? 100 : progressPercentage;
+        var countDifference = CalculateCountDifference(priority.Key);
+
+        <div class="dashboard__card">
+            <div class="dashboard__card-info">
+                <div class="dashboard__card__info__count-container">
+                    <h5 class="dashboard__card__info-count">
+                        @priority.Value
+                        <span class="dashboard__card__info__count-difference @(countDifference.cssClass)">
+                            (@if (!string.IsNullOrEmpty(countDifference.icon))
+                            {
+                            }
+                            @countDifference.difference%)
+                        </span>
+                    </h5>
+                    <label class="dashboard__card__info__monthly__change-label">Monthly Comparison</label>
+                </div>
+                <div class="dashboard__new__incident__progress-bar-container">
+                    <div class="dashboard__new__incident__progress-bar @GetProgressBarClass(priority.Key)"
+                         style="width: @progressPercentage% !important; height: 20px; transition: width 1s ease-in-out;">
+                    </div>
+                </div>
+                <label class="dashboard__card__info-title">@priority.Key Incidents</label>
+            </div>
+            @if (!string.IsNullOrEmpty(countDifference.icon))
+            {
+                <i class="bi @countDifference.icon"></i>
+            }
+        </div>
+    }
+</div>
+
+<div class="dashboard__incident__content">
+
+    <div class="dashboard__incident__content-left">
+        <div class="dashboard__incident__summary__report">
+            <div class="dashboard__incident__summary-all-incidents">
+                <div class="dashboard__incident__summary__all__incidents-header">
+                    <h6 class="dashboard__incident__summary__all__incidents-title">Overall Incident Report</h6>
+                    <button class="dashboard__incident__summary__all__incidents-filter" @onclick="ToggleFilterOverAll">Filter : <i class="bi bi-funnel"></i></button>
+                    <div class="dashboard__incident__summary__all__incidents-filter-list @(isFilterOverAllVisible ? "dashboard__incident__summary__show__filter-overall" : "dashboard__incident__summary__hide__filter-overall")">
+                        <FluentSelect Appearance="Appearance.Filled"
+                                      TOption="string"
+                                      Items="@overAllIncidentsOption"
+                                      @bind-Value="@selectedOverAllIncidentFilter"
+                                      @onchange="OnFilterOverAllIncidentChanged">
+                        </FluentSelect>
+                    </div>
+                </div>
+                <canvas id="incidentLineChart" width="500" height="300"></canvas>
+            </div>
+
+            <div class="dashboard__incident__reported__by__department">
+                <div class="dashboard__incident__reported__by__department-header">
+                    <h6 class="dashboard__incident__reported__by__department__header-title">Incidents Reported by Department</h6>
+                    <button class="dashboard__incident__reported__by__department-filter" @onclick="ToggleFilterReportedByDept">Filter : <i class="bi bi-funnel"></i></button>
+                    <div class="dashboard__incident__reported__by__department-filter-list @(isFilterReportedByDeptVisible ? "dashboard__incident__reported__show-filter" : "dashboard__incident__reported__hide-filter")">
+                        <FluentSelect Appearance="Appearance.Filled"
+                                      TOption="string"
+                                      Items="@options"
+                                      @bind-Value="@selectedFilter"
+                                      @onchange="OnFilterChanged">
+                        </FluentSelect>
+                    </div>
+                </div>
+                <canvas id="incidentBarChart" width="500" height="300"></canvas>
+            </div>
+        </div>
+        <div class="dashboard__incident__users">
+            <h6 class="dashboard__incident__users-title">Users List</h6>
+            <div class="dashboard__incident__users-info">
+                <table class="dashboard__incident__users-table">
+                    <thead>
+                        <tr>
+                            <td>Profile</td>
+                            <td>Username</td>
+                            <td>Department</td>
+                            <td>Password</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><i class="bi bi-person-bounding-box"></i></td>
+                            <td>Rowel</td>
+                            <td>(MAIN SALES)</td>
+                            <td>****</td>
+                        </tr>
+                        <tr>
+                            <td><i class="bi bi-person-bounding-box"></i></td>
+                            <td>Joan</td>
+                            <td>(HR)</td>
+                            <td>****</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="dashboard__incident__content-right">
+        <div class="dashboard__incident__recent__incidents">
+            <h6 class="dashboard__incident__recent__incidents-title">Recent Incidents</h6>
+            @foreach (var incident in recentIncidentsList)
+            {
+                <div class="dashboard__incident__recent__incidents-item">
+                    <a href="/view-incident-details/@incident.Incident_ID" class="dashboard__incident__recent__incidents-name">@incident.Incident_Name</a>
+                    <span class="dashboard__incident__recent__incidents-date">@incident.Date_Reported.ToString("MM/dd/yyyy")</span>
+                </div>
+            }
+        </div>
+        <div class="dashboard__incident__help">
+            <i class="bi bi-exclamation-square-fill"></i>
+            <h6 class="dashboard__incident-title">Need Help ?</h6>
+            <p>Explore our documentation – Click here to find solutions!</p>
+            <a href="/troubleshoot" class="dashboard__incident__help-btn">Documentation</a>
+        </div>
+        <div class="dashboard__incident__contact__support">
+            <h6 class="dashboard__incident__contact__support-title">Contact Support</h6>
+            <label><i class="bi bi-phone-vibrate"></i> +6391234567890</label>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+    [CascadingParameter]
+    private List<Incidents_TBL> Incident { get; set; } = new List<Incidents_TBL>();
+    private List<Incidents_TBL> recentIncidentsList = new List<Incidents_TBL>();
+    private List<Incidents_TBL> filteredOverAllIncidents = new List<Incidents_TBL>();
+    private List<Incidents_TBL> filteredIncidents = new List<Incidents_TBL>();
+
+    private int pendingIncidentCount;
+    private string userName;
+    private string userRole;
+    private string formattedDate;
+
+    private bool isFilterOverAllVisible = false;
+    private bool isFilterReportedByDeptVisible = false;
+
+    private string selectedOverAllIncidentFilter = "Month";
+    private string selectedOverAllIncidentValue = "Month";
+    private List<string> overAllIncidentsOption
+     = new List<string> { "Day", "Week", "Month", "Year" };
+    private string selectedFilter = "Month";
+    private string selectedValue = "Month";
+    private List<string> options = new List<string> { "Day", "Week", "Month", "Year" };
+
+    private Dictionary<string, int> previousMonthCounts = new Dictionary<string, int>
+    {
+        { "Urgent", 0 },
+        { "Important", 0 },
+        { "Routine", 0 },
+        { "Others", 0 }
+    };
+    private Dictionary<string, int> currentMonthCounts = new Dictionary<string, int>
+    {
+        { "Urgent", 0 },
+        { "Important", 0 },
+        { "Routine", 0 },
+        { "Others", 0 }
+    };
+    private Dictionary<string, int> priorityCounts = new Dictionary<string, int>
+    {
+        { "Urgent", 0 },
+        { "Important", 0 },
+        { "Routine", 0 },
+        { "Others", 0 }
+    };
+
+    private List<DateTime> incidentDates = new List<DateTime>();
+    private List<int> incidentCounts = new List<int>();
+    private List<string> locationNames = new List<string>();
+    private List<int> locationIncidentCountsForChart = new List<int>();
+    private List<string> TooltipData { get; set; } = new List<string>();
+    private Dictionary<string, List<KeyValuePair<string, int>>> locationIncidentDetails = new Dictionary<string, List<KeyValuePair<string, int>>>();
+    private Dictionary<string, List<KeyValuePair<string, int>>> locationIncidentCounts = new Dictionary<string, List<KeyValuePair<string, int>>>();
+
+    // ============================================================================================================>>>
+
+    public async Task LoadIncidents()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        userName = user.Identity?.Name;
+
+        var roleClaim = user?.FindFirst(ClaimTypes.Role);
+        userRole = roleClaim?.Value ?? "No role assigned";
+
+        formattedDate = DateTime.Now.ToString("dddd dd MMMM yyyy");
+
+        var incidents = await IncidentService.GetAllIncidentsAsync();
+        Incident = incidents.ToList();
+        pendingIncidentCount = Incident.Count(i => i.Status == "Pending");
+
+        var recentIncidents = await IncidentService.GetAllIncidentsAsync();
+
+        var completedIncidents = recentIncidents
+            .Where(i => i.Status == "Completed")
+            .OrderByDescending(i => i.Date_Reported)
+            .Take(5)
+            .ToList();
+        recentIncidentsList = completedIncidents;
+
+        // StateHasChanged();
+    }
+
+   
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadIncidents();
+        await FetchIncidentCountsForMonths();
+        CountIncidentsByPriority();
+
+        FilterIncidentData(selectedFilter);
+        filterOverAllIncidentReport(selectedOverAllIncidentFilter);
+        PrepareLineChartData(filteredOverAllIncidents);
+        PrepareBarChartData(filteredIncidents);
+        CountRecurringIncidentsByLocation(filteredIncidents);
+        // StateHasChanged();
+    }
+
+    private void ToggleFilterOverAll()
+    {
+        isFilterOverAllVisible = !isFilterOverAllVisible;
+    }
+
+    private void ToggleFilterReportedByDept()
+    {
+        isFilterReportedByDeptVisible = !isFilterReportedByDeptVisible;
+    }
+
+    private void CountIncidentsByPriority()
+    {
+        priorityCounts["Urgent"] = Incident.Count(i => i.Priority == "Urgent");
+        priorityCounts["Important"] = Incident.Count(i => i.Priority == "Important");
+        priorityCounts["Routine"] = Incident.Count(i => i.Priority == "Routine");
+        priorityCounts["Others"] = Incident.Count(i => i.Priority != "Urgent" && i.Priority != "Important" && i.Priority != "Routine");
+        // StateHasChanged();
+    }
+
+    private async Task FetchIncidentCountsForMonths()
+    {
+        var previousMonthIncidents = Incident.Where(i => i.Date_Reported.Month == 12 && i.Date_Reported.Year == 2024).ToList();
+        var currentMonthIncidents = Incident.Where(i => i.Date_Reported.Month == DateTime.Now.Month && i.Date_Reported.Year == DateTime.Now.Year).ToList();
+        previousMonthCounts["Urgent"] = previousMonthIncidents.Count(i => i.Priority == "Urgent");
+        previousMonthCounts["Important"] = previousMonthIncidents.Count(i => i.Priority == "Important");
+        previousMonthCounts["Routine"] = previousMonthIncidents.Count(i => i.Priority == "Routine");
+        previousMonthCounts["Others"] = previousMonthIncidents.Count(i => i.Priority != "Urgent" && i.Priority != "Important" && i.Priority != "Routine");
+
+        currentMonthCounts["Urgent"] = currentMonthIncidents.Count(i => i.Priority == "Urgent");
+        currentMonthCounts["Important"] = currentMonthIncidents.Count(i => i.Priority == "Important");
+        currentMonthCounts["Routine"] = currentMonthIncidents.Count(i => i.Priority == "Routine");
+        currentMonthCounts["Others"] = currentMonthIncidents.Count(i => i.Priority != "Urgent" && i.Priority != "Important" && i.Priority != "Routine");
+        // StateHasChanged();
+    }
+
+    private (string difference, string icon, string cssClass) CalculateCountDifference(string priority)
+    {
+        int previousCount = previousMonthCounts[priority];
+        int currentCount = currentMonthCounts[priority];
+        int difference = currentCount - previousCount;
+        string cssClass = difference > 0 ? "text-success" : (difference < 0 ? "text-danger" : "text-neutral");
+        string icon = difference > 0 ? "bi-graph-up-arrow count__difference__arrow-up" :
+                      (difference < 0 ? "bi-graph-down-arrow count__difference__arrow-down" : "bi-arrow-right count__difference__arrow-right");
+        return (difference > 0 ? $"{difference}" : difference < 0 ? $"{difference}" : "0", icon, cssClass);
+    }
+
+    private string GetProgressBarClass(string priority)
+    {
+        switch (priority)
+        {
+            case "Urgent":
+                return "progress-bar-urgent";
+            case "Important":
+                return "progress-bar-important";
+            case "Routine":
+                return "progress-bar-routine";
+            default:
+                return "progress-bar-default";
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderLineChart();
+            await RenderBarChart();
+        }
+    }
+
+    private void OnFilterOverAllIncidentChanged(ChangeEventArgs e)
+    {
+        selectedOverAllIncidentFilter = e.Value.ToString();
+        Console.WriteLine("Selected filter: " + selectedOverAllIncidentFilter);
+        filterOverAllIncidentReport(selectedOverAllIncidentFilter);
+    }
+
+    private void filterOverAllIncidentReport(string selectedOverAllIncidentFilter)
+    {
+        switch (selectedOverAllIncidentFilter)
+        {
+            case "Day":
+                filteredOverAllIncidents = Incident.Where(i => i.Date_Reported.Date == DateTime.Today.Date).ToList();
+                break;
+
+            case "Week":
+                var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+                var endOfWeek = startOfWeek.AddDays(7).AddSeconds(-1);
+
+                Console.WriteLine($"Start of week: {startOfWeek}, End of week: {endOfWeek}");
+
+                filteredOverAllIncidents = Incident.Where(i => i.Date_Reported >= startOfWeek && i.Date_Reported <= endOfWeek).ToList();
+                break;
+
+            case "Month":
+                filteredOverAllIncidents = Incident.Where(i => i.Date_Reported.Month == DateTime.Now.Month && i.Date_Reported.Year == DateTime.Now.Year).ToList();
+                break;
+
+            case "Year":
+                filteredOverAllIncidents = Incident.Where(i => i.Date_Reported.Year == DateTime.Now.Year).ToList();
+                break;
+
+            default:
+                filteredOverAllIncidents = Incident.ToList();
+                break;
+        }
+        PrepareLineChartData(filteredOverAllIncidents);
+        RenderLineChart();
+    }
+
+   private void PrepareLineChartData(List<Incidents_TBL> filteredOverAllIncidents)
+{
+    incidentDates.Clear();
+    incidentCounts.Clear();
+
+    if (filteredOverAllIncidents.Count == 0)
+    {
+        incidentDates.Add(DateTime.Now);  
+        incidentCounts.Add(0);            
+    }
+    else
+    {
+        var groupedByDate = filteredOverAllIncidents
+                .GroupBy(i => i.Date_Reported.Date)
+            .OrderBy(g => g.Key)                
+            .ToList();
+
+        foreach (var group in groupedByDate)
+        {
+            incidentDates.Add(group.Key);        
+            incidentCounts.Add(group.Count());    
+        }
+    }
+  
+}
+    private async Task RenderLineChart()
+    {
+        if (incidentCounts.Count > 0 && incidentDates.Count > 0)
+        {
+            var labels = incidentDates.Select(d => d.ToString("MM/dd/yyyy")).ToList();
+            var tooltipData = incidentCounts
+                .Select(count => $"Count: {count}")
+                .ToList();
+
+            Console.WriteLine("Rendering chart with the following data:");
+            Console.WriteLine("Labels (Dates):");
+            foreach (var label in labels)
+            {
+                Console.WriteLine(label);
+            }
+
+            Console.WriteLine("Tooltip Data (Counts):");
+            foreach (var tooltip in tooltipData)
+            {
+                Console.WriteLine(tooltip);
+            }
+
+            await JS.InvokeVoidAsync("renderLineChart", "incidentLineChart", labels, incidentCounts, "Incident Count Over Time", tooltipData);
+        }
+        else
+        {
+            Console.WriteLine("No data to render in the chart.");
+        }
+    }
+
+    private void OnFilterChanged(ChangeEventArgs e)
+    {
+        selectedFilter = e.Value.ToString();
+        FilterIncidentData(selectedFilter);
+        Console.WriteLine("Selected filter: " + selectedFilter);
+    }
+
+    private void FilterIncidentData(string selectedFilter)
+    {
+        Console.WriteLine("Filtering incidents by: " + selectedFilter);
+
+        switch (selectedFilter)
+        {
+            case "Day":
+                filteredIncidents = Incident.Where(i => i.Date_Reported.Date == DateTime.Today.Date).ToList();
+                break;
+
+            case "Week":
+                var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+                var endOfWeek = startOfWeek.AddDays(7).AddSeconds(-1);
+
+                Console.WriteLine($"Start of week: {startOfWeek}, End of week: {endOfWeek}");
+
+                filteredIncidents = Incident.Where(i => i.Date_Reported >= startOfWeek && i.Date_Reported <= endOfWeek).ToList();
+                break;
+
+            case "Month":
+                filteredIncidents = Incident.Where(i => i.Date_Reported.Month == DateTime.Now.Month && i.Date_Reported.Year == DateTime.Now.Year).ToList();
+                break;
+
+            case "Year":
+                filteredIncidents = Incident.Where(i => i.Date_Reported.Year == DateTime.Now.Year).ToList();
+                break;
+
+            default:
+                filteredIncidents = Incident.ToList();
+                break;
+        }
+
+        Console.WriteLine($"Filtered incidents count: {filteredIncidents.Count}");
+        foreach (var incident in filteredIncidents)
+        {
+            Console.WriteLine($"Incident ID: {incident.Incident_ID}, Date: {incident.Date_Reported}");
+        }
+        PrepareBarChartData(filteredIncidents);
+        CountRecurringIncidentsByLocation(filteredIncidents);
+        RenderBarChart();
+    }
+
+    private void PrepareBarChartData(List<Incidents_TBL> filteredIncidents)
+    {
+        locationNames.Clear();
+        locationIncidentCountsForChart.Clear();
+        List<string> tooltipData = new List<string>();
+
+        var locationIncidentCounts = filteredIncidents
+            .GroupBy(i => i.Location)
+            .ToList();
+
+        foreach (var locationGroup in locationIncidentCounts)
+        {
+            locationNames.Add(locationGroup.Key);
+
+            int incidentCount = locationGroup.Count();
+
+            locationIncidentCountsForChart.Add(incidentCount);
+            tooltipData.Add($"Location: {locationGroup.Key}, Incidents: {incidentCount}");
+        }
+
+        TooltipData = tooltipData;
+    }
+
+    private void CountRecurringIncidentsByLocation(List<Incidents_TBL> filteredIncidents)
+    {
+        locationIncidentCounts.Clear();
+        locationIncidentDetails.Clear();
+
+        var groupedByLocation = filteredIncidents
+            .GroupBy(i => i.Location)
+            .ToList();
+
+        foreach (var locationGroup in groupedByLocation)
+        {
+            var locationName = locationGroup.Key;
+            var incidentCounts = locationGroup
+                .GroupBy(i => i.Incident_Name)
+                .Select(ig => new KeyValuePair<string, int>(ig.Key, ig.Count()))
+                .OrderByDescending(ig => ig.Value)
+                .ToList();
+            locationIncidentCounts[locationName] = incidentCounts;
+            locationIncidentDetails[locationName] = incidentCounts;
+        }
+    }
+
+    private async Task RenderBarChart()
+    {
+        try
+        {
+            if (locationIncidentCountsForChart.Count > 0 && locationNames.Count > 0)
+            {
+                var labels = locationNames;
+                var data = locationIncidentCountsForChart;
+                var tooltipData = locationIncidentCounts
+                    .Select(location => string.Join(", ", location.Value.Select(incident => $"{incident.Key}: {incident.Value}"))).ToList();
+                await JS.InvokeVoidAsync("renderBarChart", "incidentBarChart", labels, data, "Incidents by Department", tooltipData);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error rendering bar chart: {ex.Message}");
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+

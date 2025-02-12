@@ -1,0 +1,555 @@
+﻿@page "/view-incident-details/{Incident_ID:int}"
+@rendermode @(new InteractiveAutoRenderMode(false))
+
+@if (Incident != null)
+{
+    <EditIncidentModal isEditIncidentModalFormVisible="isEditIncidentModalFormVisible" SelectedIncidentID="@Selected_ID" OnUpdate="OnIncidentUpdate" OnClose="OnEditIncidentModalClose" />
+    <div class="view__incident__detail">
+        <div class="view__incident__detail-left">
+            <div class="view__incident__detail-info" id="view__incident__detail-incident-report">
+                @if (isRecurringIncident)
+                {
+                    <label class="view__incident-recurring">Recurring</label>
+                }
+                <img src="\assets\logo\logo1.jpg" class="view__incident__detail-logo" />
+                <h2 class="view__incident__detail-title">Incident Report</h2>
+                <div class="view__incident__detail-requester">
+                    <img src="\assets\requesterphoto\person.jpg" class="view__incident__detail__requester-photo" />
+                    <div class="view__incident__detail__requester-info">
+                        <div class="view__incident-detail__info-item">
+                            <label class="incident__detail__incident__id">Incident ID</label>
+                            <p>@Incident.Incident_ID</p>
+                        </div>
+                        <div class="view__incident-detail__info-item">
+                            <label>Requested By</label>
+                            <p>@Incident.Reported_By</p>
+                        </div>
+                        <div class="view__incident-detail__info-item">
+                            <label>Location/Dept</label>
+                            <p>@Incident.Location</p>
+                        </div>
+                        <div class="view__incident-detail__info-item">
+                            <label>Incident Status</label>
+                            <p>@Incident.Status</p>
+                        </div>
+                    </div>
+                    <div class="view__incident__detail-date">
+                        <div class="view__incident__detail__date-item">
+                            <label>Date Reported</label>
+                            <p>@Incident.Date_Reported</p>
+                        </div>
+                        <div class="view__incident__detail__date-item">
+                            <label>Incident Date</label>
+                            <p>@Incident.Incident_Date</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="view__incident__detail-incident">
+                    <div class="view__incident__detail__incident-info">
+                        <div class="view__incident__detail__incident__info-item">
+                            <label>Incident Name</label>
+                            <p>@Incident.Incident_Name</p>
+                        </div>
+                        <div class="view__incident__detail__incident__info-item">
+                            <label>Category</label>
+                            <p>@Incident.Category</p>
+                        </div>
+                        <div class="view__incident__detail__incident__info-item">
+                            <label>Priority Level</label>
+                            <p>@Incident.Priority</p>
+                        </div>
+                        <div class="view__incident__detail__incident__info-item">
+                            <label>Resolver Name</label>
+                            <p>@Incident.Resolver_Name</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="view__incident__detail-departmenthead">
+                    <label>Department Head</label>
+                    <p>@Incident.Department_Head</p>
+                </div>
+            </div>
+        </div>
+        <div class="view__incident__detail-right">
+            <div class="view__incident__detail-cta-support">
+                <div class="view__incident__detail-cta">
+                    <button class="view__incident__detail-cta-btn" @onclick="DownloadPdf"><i class="bi bi-download"></i> Download</button>
+                    <a href="/troubleshoot" class="view__incident__detail-support-btn"><i class="bi bi-exclamation-circle"></i>Troubleshoot</a>
+                    @if ((Incident.Status != "Completed" && Incident.Department_Head == currentUserName) || (IsAdmin && Incident.Status != "Completed"))
+                    {
+                        <button @onclick="()=>ToggleEditIncidentModal(Incident_ID)" class="view__incident__detail-cta-btn" disabled="@IsEditButtonDisabled()">
+                            <i class="bi bi-pencil-square"></i>Edit
+                        </button>
+                    }
+                </div>
+            </div>
+            <div class="view__incident__detail__comment">
+                @if (comments != null && comments.Any())
+                {
+                    <div class="view__incident__detail__comment__post">
+                        <i class="bi bi-fullscreen" @onclick="ToggleCommentFormFullScreen"></i>
+                        @if ((Incident.Status != "Completed" && Incident.Department_Head == currentUserName) || (IsAdmin && Incident.Status != "Completed"))
+                        {
+                            <button @onclick="ToggleCommentForm" class="view__incident__detail__comment__post-btn">Comment</button>
+                        }
+                    </div>
+                    @foreach (var comment in comments)
+                    {
+                        <div class="view__incident__detail__comment-info">
+                            <img src="\assets\requesterphoto\person.jpg" class="view__incident__detail__comment-image" />
+                            <div class="view__incident__detail__comment-content">
+                                <p>
+                                    <strong>@comment.Username</strong> - @comment.CreatedAt.ToString("g")
+                                </p>
+                                <p>@comment.Comment</p>
+                                @if (comment.ImageVideoData != null && comment.ImageVideoData.Length > 0)
+                                {
+                                    var base64Data = Convert.ToBase64String(comment.ImageVideoData);
+                                    if (IsImage(comment.ImageVideoData))
+                                    {
+                                        <img style="width: 100%" src="data:image/jpeg;base64,@base64Data" alt="Comment Image" />
+                                    }
+                                    else if (IsVideo(comment.ImageVideoData))
+                                    {
+                                        <video style="width: 100%" controls>
+                                            <source src="data:video/mp4;base64,@base64Data" type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="view__incident__detail__no-comment @(isCommentFormVisible ? "hideNoComment": "")">
+                        <p>No comment yet</p>
+                    </div>
+                }
+                @if ((Incident.Status == "Pending" && (Incident.Department_Head == currentUserName || IsAdmin)))
+                {
+                    <EditForm Model="@this" OnValidSubmit="PostComment">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+                        <div class="view__incident__detail__comment-form @(isCommentFormVisible ? "showCommentForm" : "hideCommentForm")">
+
+                            <div class="view__incident__detail__comment-form-header" @onclick="ToggleCommentForm">
+                                <div class="view__incident__detail__comment-form-header-cta">
+                                    <label class="view__incident__detail__comment-form-header-cta-title">Comment Support</label>
+                                    <i class="bi bi-chat-left"></i>
+                                </div>
+                            </div>
+
+                            <div class="view__incident__detail__comment-form-body">
+                                <img src="\assets\chatbot\chatbot.gif" class="view__incident__detail__comment-form-body-bot-img" />
+
+                                @if(IsAdmin)
+                                {
+                                <div class="view__incident__detail__comment-form-body-user-select-option">
+                                <p>Welcome back, @currentUserName! 👋 Glad to have you here again.</p>
+                                <button class="view__incident__detail__comment-form-body-user-select-option" @onclick='() => SelectCommentOption("Got it! I’ll be there in a few minutes to help you out.😊")'>Got it! I’ll be there in a few minutes to help you out.😊</button>
+                                        <button class="view__incident__detail__comment-form-body-user-select-option" @onclick='() => SelectCommentOption("Hi there! 👋 Thanks for reaching out. I’m currently handling some urgent incidents, so I need to prioritize those first. I apologize for the wait, but I’ll be with you as soon as I can. Thank you for your patience! 😊")'>
+                                    Hi there! 👋 Thanks for reaching out. I’m currently handling some urgent incidents, so I need to prioritize those first. I apologize for the wait, but I’ll be with you as soon as I can. Thank you for your patience! 😊
+                                </button>
+                                </div>
+                                }
+                                else
+                                {
+                                    <p>Hey there! 👋 How can I assist you today? Let me know what’s going on—just leave a comment, and I’ll get back to you ASAP!</p>
+                                    <div class="view__incident__detail__comment-form-body-user-select-option">
+                                        <button @onclick='() => SelectCommentOption("I have an issue with my computer")'>I have an issue with my computer</button>
+                                        <button @onclick='() => SelectCommentOption("I need help with software installation")'>I need help with software installation</button>
+                                        <button @onclick='() => SelectCommentOption("My internet is not working")'>My internet is not working</button>
+                                        <button @onclick='() => SelectCommentOption("My email isn’t syncing")'>My email isn’t syncing</button>
+                                    </div>
+                                }
+
+                                @if (!string.IsNullOrEmpty(imagePreview))
+                                {
+                                    <div class="view__incident__detail__comment-form-preview-image">
+                                        <img src="@imagePreview" alt="Image Preview" style="max-width: 120px; max-height: 100px;" />
+                                        <button @onclick="RemoveImage" class="view__incident__detail__remove-image-btn">
+                                            Remove
+                                        </button>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(videoPreviewUrl))
+                                {
+                                    <div class="view__incident__detail__comment-form-preview-image">
+                                        <video style="max-width: 120px; max-height: 100px;" controls>
+                                            <source src="@videoPreviewUrl" type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                        </video>
+                                        <button @onclick="RemoveVideo" class="view__incident__detail__remove-image-btn">
+                                            Remove
+                                        </button>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(errorMessage))
+                                {
+                                    <div class="view__incident__detail__comment-form-body-error-massage">
+                                        @errorMessage
+                                    </div>
+                                }
+                            </div>
+                            <div class="view__incident__detail__comment-form-footer">
+                                @if (isUploadImageVideoVisible)
+                                {
+                                    <InputFile OnChange="HandleFileSelected" />
+                                }
+                                else
+                                {
+                                    <input type="text" @bind="newComment" placeholder="write a comment" />
+                                }
+                                <div class="view__incident__detail__comment-form-footer-upload-send">
+                                    <i class="bi bi-card-image" @onclick="toggleUploadImage"></i>
+                                    <button type="submit">Send</button>
+                                </div>
+                            </div>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+
+            <div class="view__incident__detail-fullscreen @(isCommentFormFullScreen ? "comment__form__fullscreen-open": "comment__form__fullscreen-closed")">
+                <Navbar />
+                <div class="view__incident__detail__fullscreen-content">
+                    <div class="view__incident__detail__fullscreen-left">
+                        <h3 class="view__incident__detail__fullscreen-incident-name">@Incident.Incident_Name  <i class="bi bi-dash-lg close-fullscreen" @onclick="ToggleCommentFormFullScreen"></i></h3>
+                        <div class="view__incident__detail__fullscreen-users">
+                            <img src="\assets\requesterphoto\person.jpg" class="view__incident__detail__comment-image" />
+                            <div class="view__incident__detail__fullscreen-user-info">
+                                <div class="view__incident__detail__fullscreen__user__info-username">
+                                    <p class="view__incident__detail__fullscreen__user__info__username-username">Sherwin</p>
+                                    <div class="view__incident__detail__fullscreen__user-status">
+                                        <i class="bi bi-dot"></i>
+                                        <label class="view__incident__detail__fullscreen__user__info-status"> Online</label>
+                                    </div>
+                                </div>
+                                <label>Admin</label>
+                            </div>
+                        </div>
+                        <div class="view__incident__detail__fullscreen-users">
+                            <img src="\assets\requesterphoto\person.jpg" class="view__incident__detail__comment-image" />
+                            <div class="view__incident__detail__fullscreen-user-info">
+                                <div class="view__incident__detail__fullscreen__user__info-username">
+                                    <p class="view__incident__detail__fullscreen__user__info__username-username">@Incident.Department_Head</p>
+                                    <div class="view__incident__detail__fullscreen__user-status">
+                                        <i class="bi bi-dot"></i>
+                                        <label class="view__incident__detail__fullscreen__user__info-status"> Online</label>
+                                    </div>
+                                </div>
+                                <label>User</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="view__incident__detail__fullscreen-center">
+                        <div class="view__incident__detail__fullscreen-form">
+                            <textarea rows="3" class="view__incident__detail__fullscreen-textarea" cols="10" maxlength="250" placeholder="Please provide any relevant information, observations, or suggestions regarding the incident. . ." @bind="newComment"></textarea>
+                            @if ((Incident.Status != "Completed" && Incident.Department_Head == currentUserName) || (IsAdmin && Incident.Status != "Completed"))
+                            {
+                                <div class="view__incident__detail__fullscreen__form-button">
+                                    <button type="submit" class="view__incident__detail__fullscreen__form-submit" @onclick="PostComment">Submit</button>
+                                </div>
+                            }
+                        </div>
+                        @if (comments != null && comments.Any())
+                        {
+                            @foreach (var comment in comments)
+                            {
+                                <div class="view__incident__detail__comment-info">
+                                    <img src="\assets\requesterphoto\person.jpg" class="view__incident__detail__comment-image" />
+                                    <div class="view__incident__detail__comment-content">
+                                        <p>
+                                            <strong>@comment.Username</strong> - @comment.CreatedAt.ToString("g")
+                                        </p>
+                                        <p>@comment.Comment</p>
+                                        @if (comment.ImageVideoData != null && comment.ImageVideoData.Length > 0)
+                                        {
+                                            var base64Data = Convert.ToBase64String(comment.ImageVideoData);
+                                            if (IsImage(comment.ImageVideoData))
+                                            {
+                                                <img style="width: 100%" src="data:image/jpeg;base64,@base64Data" alt="Comment Image" />
+                                            }
+                                            else if (IsVideo(comment.ImageVideoData))
+                                            {
+                                                <video style="width: 100%" controls>
+                                                    <source src="data:video/mp4;base64,@base64Data" type="video/mp4" />
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <div class="view__incident__detail__fullscreen-right">right</div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+    [Parameter] public int Incident_ID { get; set; }
+    private Incidents_TBL Incident;
+    private List<Board_TBL> comments;
+    private HubConnection? hubConnection;
+    private string newComment = string.Empty;
+    private string currentUserName;
+    private int Selected_ID { get; set; }
+    private bool IsAdmin { get; set; }
+    private bool isEditIncidentModalFormVisible = false;
+    private bool isCommentFormVisible = false;
+    private bool isCommentFormFullScreen = false;
+    private bool isRecurringIncident = false;
+    private bool isUploadImageVideoVisible = false;
+
+    private DateTime? previousIncidentDate;
+    private int? previousIncidentID;
+
+    string errorMessage = "";
+    private string? imagePreview;
+    private IBrowserFile? imageFile;
+    private string videoPreviewUrl = null!;
+    private IBrowserFile? videoFile;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadIncidentDetails();
+        await LoadComments();
+        await LoadCommentHub();
+        await IsRecurring();
+        await UserAuthentication();
+    }
+
+    private async Task LoadIncidentDetails()
+    {
+        Incident = await IncidentService.GetIncidentByIdAsync(Incident_ID);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadComments() => comments = await BoardService.GetCommentsByIncidentIdAsync(Incident_ID);
+
+    private async Task LoadCommentHub()
+    {
+        if (hubConnection == null)
+        {
+            hubConnection = new HubConnectionBuilder()
+           .WithUrl(NavigationManager.ToAbsoluteUri("/commentHub"))
+           .Build();
+            hubConnection.On<string, string, byte[]>("NewComment", (username, newComment, imageVideoData) =>
+            {
+                InvokeAsync(() =>
+                {
+                    comments.Insert(0, new Board_TBL
+                        {
+                            Username = username,
+                            Comment = newComment,
+                            CreatedAt = DateTime.Now,
+                            ImageVideoData = imageVideoData
+                        });
+                    Console.WriteLine($"commentHub initialize");
+                    Console.WriteLine($"signal r image: {imageVideoData.Length} bytes");
+                    StateHasChanged();
+                });
+            });
+            await hubConnection.StartAsync();
+            await JS.InvokeVoidAsync("console.log", "SignalR connection established.");
+        }
+    }
+
+    private async Task IsRecurring()
+    {
+        isRecurringIncident = await IncidentService.IsIncidentRecurringAsync(
+        Incident.Location, Incident.Incident_Name, Incident.Reported_By);
+    }
+
+    private async Task UserAuthentication()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        IsAdmin = user.IsInRole("Admin");
+        currentUserName = user.Identity!.Name!;
+    }
+
+    private void ToggleEditIncidentModal(int Incident_ID)
+    {
+        Selected_ID = Incident_ID;
+        isEditIncidentModalFormVisible = !isEditIncidentModalFormVisible;
+    }
+
+    private void ToggleCommentForm() => isCommentFormVisible = !isCommentFormVisible;
+    private void ToggleCommentFormFullScreen() => isCommentFormFullScreen = !isCommentFormFullScreen;
+    private void toggleUploadImage() => isUploadImageVideoVisible = !isUploadImageVideoVisible;
+    private void OnEditIncidentModalClose() => isEditIncidentModalFormVisible = false;
+    private async void OnIncidentUpdate() => await LoadIncidentDetails();
+
+    private bool IsEditButtonDisabled() => IsAdmin ? Incident.Status == "Completed" : Incident.Status == "Completed" || Incident.Department_Head != currentUserName;
+
+    private async Task PostComment()
+    {
+        if (string.IsNullOrWhiteSpace(newComment) && imageFile == null && videoFile == null)
+        {
+            return; 
+        }
+        byte[] imageVideoData = new byte[0];
+        if (imageFile != null)
+        {
+            imageVideoData = await ConvertImageToByteArray(imageFile);
+        }
+        else if (videoFile != null)
+        {
+            imageVideoData = await ConvertImageToByteArray(videoFile); 
+        }
+        var comment = new Board_TBL
+            {
+                Incident_ID = Incident_ID,
+                Username = currentUserName,
+                Comment = newComment,
+                CreatedAt = DateTime.Now,
+                ImageVideoData = imageVideoData 
+            };
+        Console.WriteLine($"File type: {(imageFile?.ContentType ?? videoFile?.ContentType)}, Size: {(imageFile?.Size ?? videoFile?.Size)} bytes");
+        await BoardService.AddCommentAsync(comment);
+        if (hubConnection is not null)
+        {
+            await hubConnection.SendAsync("SendComment", currentUserName, newComment, imageVideoData);
+        }
+        ResetCommentForm();
+    }
+
+    private void ResetCommentForm()
+    {
+        newComment = string.Empty;
+        imageFile = null;
+        imagePreview = null;
+        videoFile = null;
+        videoPreviewUrl = null!;
+        isCommentFormVisible = false;
+        isUploadImageVideoVisible = false;
+    }
+
+    private void SelectCommentOption(string comment)
+    {
+        newComment = comment;
+    }
+
+    private async Task<byte[]> ConvertImageToByteArray(IBrowserFile file)
+    {
+        const long maxFileSize = 5 * 1024 * 1024; 
+        using (var memoryStream = new MemoryStream())
+        {
+            await file.OpenReadStream(maxAllowedSize: maxFileSize).CopyToAsync(memoryStream);
+            var byteArray = memoryStream.ToArray();
+            Console.WriteLine($"Image byte array length: {byteArray.Length}");
+            return byteArray;
+        }
+    }
+    
+    private async Task HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        const long maxFileSize = 5 * 1024 * 1024; 
+
+        if (file != null && (file.ContentType.StartsWith("image/") || file.ContentType.StartsWith("video/")))
+        {
+            errorMessage = string.Empty;
+
+            if (file.Size > maxFileSize)
+            {
+                errorMessage = "The selected file exceeds the 5MB size limit.";
+                imagePreview = null;
+                videoPreviewUrl = null!;
+                return;
+            }
+
+            if (file.ContentType.StartsWith("image/"))
+            {
+                imageFile = file;
+                imagePreview = await GenerateImagePreviewUrl(file, maxFileSize);  
+            }
+            else if (file.ContentType.StartsWith("video/"))
+            {
+                videoFile = file;
+                videoPreviewUrl = await GenerateVideoPreviewUrl(file); 
+            }
+        }
+        else
+        {
+            errorMessage = "Please select a valid image or video file.";
+            imagePreview = null;
+            videoPreviewUrl = null!;
+        }
+    }
+
+    private async Task<string> GenerateImagePreviewUrl(IBrowserFile file, long maxFileSize)
+    {
+        using (var stream = new MemoryStream())
+        {
+            await file.OpenReadStream(maxAllowedSize: maxFileSize).CopyToAsync(stream);
+            var imageBytes = stream.ToArray();
+            return $"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}";  
+        }
+    }
+
+    private async Task<string> GenerateVideoPreviewUrl(IBrowserFile file)
+    {
+        using (var stream = new MemoryStream())
+        {
+            await file.OpenReadStream().CopyToAsync(stream);
+            var videoBytes = stream.ToArray();
+            return $"data:{file.ContentType};base64,{Convert.ToBase64String(videoBytes)}";  
+        }
+    }
+
+    private bool IsImage(byte[] data)
+    {
+        try
+        {
+            using (var ms = new MemoryStream(data))
+            {
+                var image = Image.FromStream(ms); 
+                return image != null;
+            }
+        }
+        catch
+        {
+            return false; 
+        }
+    }
+
+    private bool IsVideo(byte[] data)
+    {
+        return data.Length > 4 && data.Take(4).SequenceEqual(new byte[] { 0x00, 0x00, 0x00, 0x18 });
+    }
+
+    private void RemoveImage()
+    {
+        imageFile = null;
+        imagePreview = null;
+        isUploadImageVideoVisible = false;
+    }
+    private void RemoveVideo()
+    {
+        videoFile = null;
+        videoPreviewUrl = null!;
+        isUploadImageVideoVisible = false;
+    }
+
+
+    private async Task DownloadPdf()
+    {
+        await JS.InvokeVoidAsync("generatePdfFromHtml", "#view__incident__detail-incident-report");
+    }
+
+
+}
+
+

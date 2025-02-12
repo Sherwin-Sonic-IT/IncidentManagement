@@ -1,0 +1,186 @@
+﻿@page "/troubleshoot"
+@rendermode InteractiveAuto
+
+
+
+
+<div class="troubleshoot">
+    <div class="troubleshoot__body">
+        <div class="troubleshoot__body-left">
+            <img src="\assets\troubleshoot\troubleshoot.png" class="troubleshoot__image-profile"/>
+            <h1 class="troubleshoot__title">Troubleshoot Guide for Incident Management</h1>
+            <p>This Troubleshoot Guide is designed to help Incident Management teams effectively identify, investigate, and resolve issues that disrupt normal business operations. The guide will cover common troubleshooting steps, tips for identifying root causes, and techniques for escalating issues when necessary.</p>
+            <h3>1. Initial Incident Identification</h3>
+            <p>Before diving into troubleshooting, it’s crucial to verify and assess the incident. This will guide the investigation process and ensure resources are allocated appropriately.</p>
+            <label><strong>Steps:</strong></label>
+            <ul class="troubleshoot__steps">
+                <li class="troubleshoot__step"><strong>Confirm Incident:</strong> Validate that the reported issue is not a user error or a misunderstanding.</li>
+                <li class="troubleshoot__step"><strong>Check for Widespread Impact:</strong> Verify if the incident affects a single user, a group of users, or an entire system/service.</li>
+                <li class="troubleshoot__step"><strong>Gather Context:</strong> Collect information such as error messages, logs, and system states from the user or monitoring systems.</li>
+            </ul>
+            <label><strong>Tools:</strong></label>
+            <ul class="troubleshoot__tools">
+                <li class="troubleshoot__tool">Monitoring tools (e.g., New Relic, Datadog, Splunk)</li>
+                <li class="troubleshoot__tool">Incident tracking system (e.g., ServiceNow, Jira)</li>
+                <li class="troubleshoot__tool">Communication tools (e.g., Slack, Microsoft Teams)</li>
+            </ul>
+            <h3>2. Categorizing the Incident</h3>
+            <p>Categorizing the incident helps to prioritize the issue, allocate appropriate resources, and ensure proper escalation channels are followed.</p>
+            <label style="margin-bottom: 0.5rem;"><strong>Steps: </strong></label>
+            <p><strong>Severity Level:</strong> Assign a severity level based on business impact. For example:</p>
+            <ul class="troubleshoot__steps">
+                <li class="troubleshoot__step"><strong>Critical(Severity 1):</strong> Complete system outage or service disruption</li>
+                <li class="troubleshoot__step"><strong>High(Severity 2):</strong> Major functionality loss, affecting multiple users or critical processes.</li>
+                <li class="troubleshoot"><strong>Medium (Severity 3):</strong> Minor service degradation or localized issues.</li>
+            </ul>
+            <p><strong>Incident Type</strong>: Classify the incident based on its nature:</p>
+            <ul class="troubleshoot__incident-types">
+                <li class="troubleshoot__incident-type"><strong>Hardware Failure</strong></li>
+                <li class="troubleshoot__incident-type"><strong>Software Bug</strong></li>
+                <li class="troubleshoot__incident-type"><strong>Network Issues</strong></li>
+                <li class="troubleshoot__incident-type"><strong>User Error</strong></li>
+                <li class="troubleshoot__incident-type"><strong>External Dependencies (e.g., third-party services)s</strong></li>
+            </ul>
+            <h3>3. Investigating the Incident</h3>
+            <p>Once an incident is confirmed, it is time to conduct a deeper investigation to identify the root cause. The investigation process varies depending on the incident's category and impact.</p>
+            <label><strong>General Investigation Steps:</strong></label>
+            <ul class="troubleshoot__steps">
+                <li class="troubleshoot__step"><strong>Reproduce the Issue:</strong> If possible, try to replicate the issue under controlled conditions to understand its cause.</li>
+                <li class="troubleshoot__step"><strong>Check System Logs:</strong> Inspect application logs, server logs, error logs, and system event logs.</li>
+                <li class="troubleshoot__step"><strong>Monitor Resource Usage:</strong> Evaluate system performance and resource utilization (e.g., CPU, memory, disk space, network).</li>
+                <li class="troubleshoot__step"><strong>Check for Recent Changes:</strong> Review any recent changes to the system or application (e.g., updates, patches, deployments).</li>
+                <li class="troubleshoot__step"><strong>Assess Dependencies:</strong> Identify any external or internal systems that the affected system relies on (e.g., databases, APIs, third-party services).</li>
+            </ul>
+            <label><strong>Tools:</strong> </label>
+            <ul class="troubleshoot__tools">
+                <li class="troubleshoot__tool">Log aggregation systems (e.g., ELK Stack, Splunk)</li>
+                <li class="troubleshoot__tool">Performance monitoring tools (e.g., Grafana, Nagios)</li>
+                <li class="troubleshoot__tool">Configuration management tools (e.g., Ansible, Puppet, Chef)</li>
+            </ul>
+            <h3>4. Resolving the Incident</h3>
+            <p>Based on the findings, take action to resolve the incident. The resolution process may vary depending on the nature of the issue.</p>
+            <label><strong>Resolution Techniques:</strong></label>
+            <ul class="troubleshoot__techniques">
+                <li class="troubleshoot__technique"><strong>Restarting Services:</strong> For issues caused by unresponsive services or memory leaks, restarting the service may resolve the issue.</li>
+                <li class="troubleshoot__technique"><strong>Rollback/Undo Changes:</strong> If recent updates or changes triggered the issue, consider rolling them back or undoing the changes.</li>
+                <li class="troubleshoot__technique"><strong>Patch or Fix Bugs:</strong> If the root cause is a software bug or vulnerability, work with development teams to apply a patch or deploy a fix.</li>
+                <li class="troubleshoot__technique"><strong>Network Fixes:</strong> For network issues, check router/switch configurations, firewall rules, and DNS settings to ensure connectivity.</li>
+                <li class="troubleshoot__technique"><strong>Restore from Backup:</strong> If data loss or corruption occurred, restore from a reliable backup.</li>
+                <li class="troubleshoot__technique"><strong>External Dependencies:</strong> If the incident is caused by third-party services, communicate with the vendor and wait for their resolution.</li>
+            </ul>
+            <h3>5. Communicating with Stakeholders</h3>
+            <p>Clear communication is crucial during the incident management process. Keep stakeholders informed about the incident's status, progress, and resolution.</p>
+            <label><strong>Communication Best Practices:</strong></label>
+            <ul class="troubleshoot__practices">
+                <li class="troubleshoot__practice"><strong>Status Updates:</strong> Regularly update stakeholders on the status of the incident (e.g., hourly or when a significant milestone is reached).</li>
+                <li class="troubleshoot__practice"><strong>Escalation Protocol:</strong> If the issue persists and cannot be resolved within an agreed-upon time frame, escalate the issue to higher-level support or management.</li>
+                <li class="troubleshoot__practice"><strong>Post-Incident Summary: </strong>Once the issue is resolved, provide a summary to all stakeholders, detailing the root cause, resolution steps, and preventive measures.</li>
+            </ul>
+            <label><strong>Tools:</strong></label>
+            <ul class="troubleshoot__tools">
+                <li class="troubleshoot__tool">Incident tracking systems (e.g., ServiceNow, PagerDuty)</li>
+                <li class="troubleshoot__tool">Email, Slack, or Microsoft Teams for updates</li>
+                <li class="troubleshoot__tool">Status page (e.g., Statuspage.io) for public communication</li>
+            </ul>
+            <h3>6. Post-Incident Review (PIR)</h3>
+            <p>After the incident is resolved, conduct a post-incident review to identify improvements in your incident management processes and prevent recurrence.</p>
+            <label><strong>Steps:</strong></label>
+
+            <ul class="troubleshoot__steps">
+                <li class="troubleshoot__step"><strong>Root Cause Analysis:</strong> Perform a thorough investigation to understand why the incident occurred and identify the underlying cause.</li>
+                <li class="troubleshoot__step"><strong>Review Incident Response:</strong> Evaluate how the incident was managed, the effectiveness of communication, and whether resources were appropriately allocated.</li>
+                <li class="troubleshoot__step"><strong>Implement Preventive Measures:</strong> Based on the findings, propose changes to improve system resilience, implement monitoring improvements, or refine incident management processes.</li>
+                <li class="troubleshoot__step"><strong>Implement Preventive Measures:</strong> Based on the findings, propose changes to improve system resilience, implement monitoring improvements, or refine incident management processes.</li>
+                <li><strong>Lessons Learned:</strong> Document lessons learned and share them with relevant teams to enhance future response strategies.</li>
+            </ul>
+            <label><strong>Tools:</strong></label>
+            <ul class="troubleshoot__tools">
+                <li class="troubleshoot__tool">Post-mortem documents or templates</li>
+                <li class="troubleshoot__tool">Root cause analysis tools (e.g., Fishbone diagrams, 5 Whys)</li>
+            </ul>
+                <h3>Conclusion</h3>
+                <p>Effective incident management is key to maintaining system uptime and ensuring business continuity. By following this troubleshooting guide, you can systematically identify, investigate, resolve, and learn from incidents. The goal is not just to fix the issue at hand but to continuously improve processes and minimize the risk of similar incidents occurring in the future.</p>
+        </div>
+
+
+
+
+        <div class="troubleshoot__body-right" >
+            <div class="" id="right-side">
+                <div class="troubleshoot__view-all">
+                    <button class="troubleshoot__view__all-btn" @onclick="ToggleViewAll">View All <i class="bi bi-arrow-right"></i></button>
+                </div>
+                <h3 class="troubleshoot__table__content-title">Table Of Content</h3>
+                <label class="troubleshoot__table__category-incident-name"><strong>Network Issues</strong></label>
+                <ul class="troubleshoot__categories">
+                    <li class="troubleshoot__category"><a href="#">Network Connectivity Outage</a></li>
+                    <li class="troubleshoot__category"><a href="#">Slow Network Performance</a></li>
+                    <li class="troubleshoot__category"><a href="#">DNS Resolution Failure</a></li>
+                </ul>
+                <div class="troubleshoot__tutorial-video">
+                    <iframe width="560" height="315" src="https://www.youtube.com/embed/1i3XdhC2ZAs?si=uNMm-XIPgLTDlsC_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="troubleshoot__related-article">
+                    <h3>Related Articles</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+    <div class="troubleshoot__view__all-list @(isViewAllVisible ? "troubleshoot__show__view__all-list" : "troubleshoot__hide__view-all-list")">
+        <div class="troubleshoot__view__all__list-close">
+            <i class="bi bi-x-lg" @onclick="ToggleViewAll"></i>
+        </div>
+        <label>Newtowork Issues</label>
+        <ul class="troubleshoot__categories">
+            <li class="troubleshoot__category"><a href="#">Network Connectivity Outage</a></li>
+            <li class="troubleshoot__category"><a href="#">Slow Network Performance</a></li>
+            <li class="troubleshoot__category"><a href="#">DNS Resolution Failure</a></li>
+        </ul>
+        <label>Software/Application Issues</label>
+        <ul class="troubleshoot__categories">
+            <li class="troubleshoot__category"><a href="#">Application Crash During Launch</a></li>
+            <li class="troubleshoot__category"><a href="#">Software Update Fails to Install</a></li>
+            <li class="troubleshoot__category"><a href="#">Incorrect Data Display in Report Generation</a></li>
+        </ul>
+        <label>Hardware Issues</label>
+        <ul class="troubleshoot__categories">
+            <li class="troubleshoot__category"><a href="#">Server Failure</a></li>
+            <li class="troubleshoot__category"><a href="#">Printer Not Responding</a></li>
+            <li class="troubleshoot__category"><a href="#">Keyboard Malfunction on Employee Computer</a></li>
+        </ul>
+        <label>Access Issues</label>
+        <ul class="troubleshoot__categories">
+            <li class="troubleshoot__category"><a href="#">User Account Locked Out</a></li>
+            <li class="troubleshoot__category"><a href="#">Unable to Access Shared Drive</a></li>
+            <li class="troubleshoot__category"><a href="#">Single Sign-On (SSO) Login Failure</a></li>
+        </ul>
+        <label>Environmental Issues</label>
+        <ul class="troubleshoot__categories">
+            <li class="troubleshoot__category"><a href="#">Power Outage in the Data Center</a></li>
+            <li class="troubleshoot__category"><a href="#">HVAC System Malfunction in Server Room</a></li>
+            <li class="troubleshoot__category"><a href="#">Flickering Office Lights</a></li>
+        </ul>
+    </div>
+
+</div>
+
+
+@code {
+
+
+    private bool isViewAllVisible = false;
+
+    private void ToggleViewAll()
+    {
+        isViewAllVisible = !isViewAllVisible;
+    }
+
+}

@@ -1,0 +1,87 @@
+﻿@rendermode @(new InteractiveAutoRenderMode(false))
+
+<div class="notification">
+    <FluentDialog @ref="dialog" Modal="@_modal" @ondialogdismiss="OnDismiss" Class="@(isNotificationVisible ? "show__notification" : "hide__notification")">
+        <div class="notification__header">
+            <label class="notification__title">Notification</label>
+            <i class="bi bi-gear-fill notification__settings-icon"></i>
+        </div>
+        <input type="search" class="notification__search-input" placeholder="Search" />
+        
+        @if(displayCount > 0)
+        {
+            @foreach (var incident in Incident.Take(displayCount))
+            {
+                <div class="notification__details" @onclick="() => NavigateToIncidentDetails(incident.Incident_ID)">
+                    <img src="assets/notification/person.jpg" class="notification__user-image" />
+                    <div class="notification__body">
+                        <div class="notification__date">
+                            <label class="notification__date-reported">@incident.Date_Reported.ToString("dd MMM yyyy")</label>
+                        </div>
+                        <div class="notification__message">
+                            <label><strong class="navbar__notification__info-username">@incident.Department_Head</strong> <span> Created a new incident report about </span><strong class="notification__info-incident-name">@incident.Incident_Name</strong></label>
+                        </div>
+                        <label class="notification__time">@incident.Date_Reported.ToString("hh:mm tt")</label>
+                    </div>
+                </div>
+            }
+        }else
+        {
+            <p>No new notification today.</p>
+        }
+
+        @if (displayCount < Incident.Count)
+        {
+            <button class="notification__view-more" @onclick="ShowMoreIncidents">View More</button>
+        }
+    </FluentDialog>
+</div>
+
+@code {
+    [Parameter] public bool isNotificationVisible { get; set; }
+    [Parameter] public EventCallback<bool> IsNotificationVisibleChanged { get; set; }
+    private List<Incidents_TBL> Incident { get; set; } = new();
+    private FluentDialog? dialog;
+    private bool _modal = true;
+
+    private int displayCount = 5; 
+
+    protected override async Task OnInitializedAsync()
+    {
+        var incidents = await IncidentService.GetAllIncidentsAsync();
+        Incident.Clear();
+        Incident.AddRange(incidents.Where(i => i.Status == "Pending").OrderByDescending(i => i.Date_Reported));
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (isNotificationVisible)
+        {
+            dialog?.Show();
+        }
+        else
+        {
+            dialog?.Hide();
+        }
+    }
+
+    private void OnDismiss(DialogEventArgs args)
+    {
+        if (args.Reason == "dismiss")
+        {
+            dialog?.Hide();
+            IsNotificationVisibleChanged.InvokeAsync(false);
+        }
+    }
+
+    private void ShowMoreIncidents()
+    {
+        displayCount += 5;
+    }
+
+    private void NavigateToIncidentDetails(int incidentId)
+    {
+        IsNotificationVisibleChanged.InvokeAsync(false);
+        NavigationManager.NavigateTo($"/view-incident-details/{incidentId}");
+    }
+}

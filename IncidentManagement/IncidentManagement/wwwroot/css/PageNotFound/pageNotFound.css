@@ -1,0 +1,50 @@
+﻿.page__not__found {
+    padding: 1rem 18rem;
+    height: 90vh;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+.page__not__found-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.page__not__found-subTitle {
+    font-size: 4rem;
+}
+.page__not__found-title {
+    font-size: 1.5rem;
+}
+.page__not__found-desc {
+}
+.page__not__found-backBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    padding: 0.75rem 2rem;
+    color: var(--color-white);
+    background-color: var(--color-darkmidnightblue);
+    border: none;
+    outline: none;
+}
+.page__not__found-backBtn:hover {
+    color: var(--color-white);
+}
+.page__not__found-backBtn .bi-arrow-left {
+    transition: 0.25s ease-in-out;
+}
+.page__not__found-backBtn:hover .bi-arrow-left {
+    transform: translateX(-5px);
+}
+
+
+.page__not__found__image {
+    flex: 1;
+}
+.page__not__found__image img {
+    width: 100%;
+}

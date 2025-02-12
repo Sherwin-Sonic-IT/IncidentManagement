@@ -1,0 +1,84 @@
+﻿@rendermode @(new InteractiveServerRenderMode(false))
+
+<div class="sidebar">
+    <button class="sidebar__toggle-btn" @onclick="ToggleSidebar">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <div class="sidebar__links @(isSidebarOpen ? "sidebar__links--open" : "sidebar__links--closed")">
+        <AuthorizeView Roles="Admin, User">
+            <Authorized>
+               <div class="sidebar__section">
+                    <div class="sidebar__section-title">Main</div>
+                    <a href="/dashboard" class="sidebar__link">
+                        <i class="bi bi-house-door-fill sidebar__icon" /> <span>Dashboard</span>
+                    </a>
+                    <a href="/incidents" class="sidebar__link">
+                        <i class="bi bi-ticket-fill sidebar__icon" /> <span>Incident Records</span>
+                    </a>
+                    <a href="/report-analytics" class="sidebar__link">
+                        <i class="bi bi-graph-up-arrow sidebar__icon" /> <span>Reports & Analytics</span>
+                    </a>
+                    <a href="/incidents-resolutions" class="sidebar__link">
+                        <i class="bi bi-question-circle-fill sidebar__icon" /> <span>Incident Resolutions</span>
+                    </a>
+                    <a href="/audit-logs" class="sidebar__link">
+                        <i class="bi bi-card-list sidebar__icon" /><span>Audit Logs</span>
+                    </a>
+               </div>
+            </Authorized>
+        </AuthorizeView>
+       
+                <div class="sidebar__section">
+                    <div class="sidebar__section-title">Manage</div>
+                    <button class="sidebar__link sidebar__link--settings" @onclick="ToggleSettingsMenu">
+                        <i class="bi bi-gear-fill sidebar__icon"></i> <span>Settings</span> <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <div class="sidebar__submenu @(isSettingsMenuOpen ? "sidebar__submenu--open" : "sidebar__submenu--closed")">
+                        <a href="/manage-users" class="sidebar__submenu-link"><i class="bi bi-person-lines-fill sidebar__icon" /> <span>Manage Users</span></a>
+                        <a href="/help-support" class="sidebar__submenu-link">
+                            <i class="bi bi-person-lines-fill sidebar__icon" /> <span>Help & Support</span>
+                        </a>
+                    </div>
+                </div>
+        @*
+        <AuthorizeView Roles="Admin">
+        <Authorized>
+        <div class="sidebar__section">
+        <div class="sidebar__section-title">Manage</div>
+        <button class="sidebar__link sidebar__link--settings" @onclick="ToggleSettingsMenu">
+        <i class="bi bi-gear-fill sidebar__icon"></i> <span>Settings</span> <i class="bi bi-chevron-right"></i>
+        </button>
+        <div class="sidebar__submenu @(isSettingsMenuOpen ? "sidebar__submenu--open" : "sidebar__submenu--closed")">
+        <a href="/manage-users" class="sidebar__submenu-link"><i class="bi bi-person-lines-fill sidebar__icon" /> <span>Manage Users</span></a>
+        <a href="/help-support" class="sidebar__submenu-link">
+        <i class="bi bi-person-lines-fill sidebar__icon" /> <span>Help & Support</span>
+        </a>
+        </div>
+        </div>
+        </Authorized>
+        </AuthorizeView>
+        *@
+
+    </div>
+</div>
+
+@code {
+    private bool isSidebarOpen = true;
+    private bool isSettingsMenuOpen = false;
+
+    private void ToggleSidebar()
+    {
+        isSidebarOpen = !isSidebarOpen;
+    }
+
+    private void ToggleSettingsMenu()
+    {
+        isSettingsMenuOpen = !isSettingsMenuOpen;
+    }
+}
+
+
+
+
+

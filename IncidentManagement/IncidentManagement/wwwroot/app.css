@@ -1,0 +1,75 @@
+@import '/_content/Microsoft.FluentUI.AspNetCore.Components/css/reboot.css';
+
+* {
+    --body-font: "Segoe UI Variable", "Segoe UI", sans-serif;
+    font-family: var(--body-font);
+/*    font-size: var(--type-ramp-base-font-size);*/
+    font-size: 0.9rem;
+    line-height: var(--type-ramp-base-line-height);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box
+}
+
+a {
+    text-decoration: none;
+}
+
+
+.content {
+    padding: 5.5rem 1rem 1rem 1rem !important;
+    background-color: var(--color-whitesmoke);
+    position: relative;
+}
+
+.content .bi-chat-left-text-fill {
+    font-size: 1.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 50%;
+    background-color: var(--color-whitesmoke) !important;
+    box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;
+    cursor: pointer;
+}
+.content .chat:hover {
+    transform: translateY(-5px);
+}
+
+:root {
+    /*COLORS*/
+    /*WHITE*/
+    --color-white: #ffffff;
+    --color-whitesmoke: #f5f5f5;
+    /*LIGHT GRAY*/
+    --color-gray: #808080;
+    --color-darkGray: #a9a9a9;
+    --color-lightGray: #d3d3d3;
+    --color-silver: #c0c0c0;
+    --color-isabelline: #f4f0ec;
+    --color-payneGray: #536878;
+    /*BLACK*/
+    --color-black: #000000;
+    /*BLUE*/
+    --color-blue: #0000ff;
+    --color-lightSkyBlue: #87cefa;
+    --color-darkmidnightblue: #003366;
+    --color-darkimperialblue: #00416a;
+    --color-paleaqua: #bcd4e6;
+    --color-dodgerBlue: #1e90ff;
+    /*RED*/
+    --color-red: #ff0000;
+    --color-indianred: #cd5c5c;
+    --color-lightCoral: #f08080;
+    /*GREEN*/
+    --color-green: #008000;
+    --color-lightGreen: #90ee90;
+    --color-laurelGreen: #a9ba9d;
+    --color-nyanza: #e9ffdb;
+    /*YELLOW*/
+    --color-lightYellow: #ffffe0;
+    --color-safetyYellow: #eed202;
+    /*ORANGE*/
+    --color-darkOrange: #ff8c00;
+    --color-papayaWhip: #ffefd5;
+    /*PURPLE*/
+    --color-plum: #dda0dd;
+}

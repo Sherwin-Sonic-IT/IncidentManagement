@@ -1,0 +1,392 @@
+﻿@page "/incidents"
+@using Microsoft.AspNetCore.SignalR.Client
+@rendermode @(new InteractiveAutoRenderMode(false))
+
+@if (altcolor)
+{
+    <style>
+        :root {
+            --datagrid-hover-color: lightyellow !important;
+        }
+    </style>
+}
+
+<div class="incidents__header">
+    <p class="incidents__header-title">Incident Records</p>
+    <div class="incidents__header-cta">
+        <FluentSearch @bind-Value=searchTerm @oninput="OnSearchChanged" Placeholder="Search incidents by ID" style="width: 100%;"></FluentSearch>
+        <div>
+            <FluentButton id="myPopoverButtonr" Appearance="Appearance.Accent" @onclick="() => _visibleR = !_visibleR">
+                Sort By
+            </FluentButton>
+        </div>
+        <div>
+            <FluentButton id="myPopoverButtonl" Appearance="Appearance.Accent" @onclick="() => _visibleL = !_visibleL">
+                Filter By
+            </FluentButton>
+        </div>
+        <div>
+            <FluentButton Appearance="Appearance.Accent" class="incidents__add-new-incident" @onclick="ToggleAddIncidentModal">
+                New Incident <i class="bi bi-plus-lg"></i>
+            </FluentButton>
+        </div>
+        <FluentPopover Style="width: 300px;" VerticalThreshold="170" AnchorId="myPopoverButtonr" @bind-Open="_visibleR">
+            <Body>
+                <div class="incidents__sortBy-list">
+                    <button @onclick="() => SetSortOrder(true)"><i class="bi bi-arrow-up"></i> Ascending</button>
+                    <button @onclick="() => SetSortOrder(false)"><i class="bi bi-arrow-down"></i> Descending</button>
+                </div>
+            </Body>
+        </FluentPopover>
+        <FluentPopover Style="width: 300px;" VerticalThreshold="170" AnchorId="myPopoverButtonl" @bind-Open="_visibleL">
+            <Body>
+                <FluentStack Orientation="Orientation.Vertical">
+                    <label>Priority</label>
+                    <FluentCheckbox @bind-Value="isRoutineSelected">Routine</FluentCheckbox>
+                    <FluentCheckbox @bind-Value="isImportantSelected">Important</FluentCheckbox>
+                    <FluentCheckbox @bind-Value="isUrgentSelected">Urgent</FluentCheckbox>
+                    <FluentCheckbox @bind-Value="isOthersSelected">Others</FluentCheckbox>
+                    <label>Status</label>
+                    <FluentCheckbox @bind-Value="isPendingSelected">Pending</FluentCheckbox>
+                    <FluentCheckbox @bind-Value="isCompletedSelected">Completed</FluentCheckbox>
+                    <FluentDatePicker Label="Select a date" AriaLabel="To" @bind-Value="@selectedDate" @onchange="OnFilterDate" DoubleClickToDate="@DoubleClickToDate" />
+                </FluentStack>
+            </Body>
+        </FluentPopover>
+    </div>
+</div>
+
+<div class="incidents__cards">
+    @foreach (var priority in priorityCounts)
+    {
+        <div class="incidents__card">
+            <i class="bi bi-journals"></i>
+            <div class="incidents__card-pending">
+                <div class="incidents__card-pending-task">
+                    <label class="incidents__priority">@priority.Key</label>
+                </div>
+                <label>Pending Tasks</label>
+            </div>
+            <h4 class="incidents__card__count">@priority.Value</h4>
+        </div>
+    }
+</div>
+
+ <NewIncidentModal isIncidentModalFormVisible="isIncidentModalFormVisible" OnClose="OnAddIncidentModalClose" OnSave="OnIncidentSaved" />
+ <ConfirmationModal isConfirmationModalVisible="isConfirmationModalVisible" SelectedIncidentID="@Selected_ID"
+                    OnClose="OnConfirmationModalClose"
+                    OnConfirm="DeleteSelectedID" />
+ <EditIncidentModal isEditIncidentModalFormVisible="isEditIncidentModalFormVisible" SelectedIncidentID="@Selected_ID" OnUpdate="OnIncidentUpdate" OnClose="OnEditIncidentModalClose" />
+
+
+<div class="incidents__table-container" tabindex="-1">
+    @if (FilteredAndSortedIncidents.Any())
+    {
+        <FluentDataGrid Class="incidents__table"
+                        OnRowDoubleClick="@(() => Console.WriteLine("Row double clicked!"))"
+                        Virtualize="true"
+                        ShowHover="true"
+                        ItemSize="50"
+                        Pagination="@pagination"
+                        GenerateHeader="GenerateHeaderOption.Sticky"
+                        TGridItem="Incidents_TBL"
+                        Items="FilteredAndSortedIncidents">
+            <PropertyColumn Title="Incident ID" Property="@(c => c!.Incident_ID)" />
+            <PropertyColumn Title="Incident Name" Property="@(c => c!.Incident_Name)" Class="incidents__table__incident__name" />
+            <PropertyColumn Title="Requested By" Property="@(c => c!.Reported_By)" />
+            <PropertyColumn Title="Resolver" Property="@(c => c!.Resolver_Name)" />
+            <PropertyColumn Title="Location" Property="@(c => c!.Location)" />
+            <PropertyColumn Title="Date Reported" Property="@(c => c!.Date_Reported)" />
+            <TemplateColumn Title="Priority" Align="@Align.Start">
+                @if (context.Priority == "Urgent")
+                {
+                    <span class="incidents__table-priority incident__priority-Urgent"> @context.Priority</span>
+                }
+                else if (context.Priority == "Important")
+                {
+                    <span class="incidents__table-priority incident__priority-Important"> @context.Priority</span>
+                }
+                else if (context.Priority == "Routine")
+                {
+                    <span class="incidents__table-priority incident__priority-Routine"> @context.Priority</span>
+                }
+                else
+                {
+                    <span class="incidents__table-priority incident__priority-Others"> @context.Priority</span>
+                }
+            </TemplateColumn>
+            <TemplateColumn Title="Status" Align="@Align.Start">
+                @if (@context.Status == "Completed")
+                {
+                    <span class="incidents__table-status incident__status-Completed"><i class="bi bi-check-circle"></i> @context.Status</span>
+                }
+                else
+                {
+                    <span class="incidents__table-status incident__status-Pending"><i class="bi bi-hourglass"></i> @context.Status</span>
+                }
+            </TemplateColumn>
+
+            <TemplateColumn Title="Actions" Align="@Align.Start" Width="200px">
+                <button type="button" class="incidents__table-btn incindents__view__details__btn" @onclick="() => ViewIncidentDetails(context)">
+                    <i class="bi bi-eye-fill" />
+                </button>
+                <button type="button" class="incidents__table-btn incidents__edit-btn"
+                        @onclick="() => ToggleEditIncidentModal(context.Incident_ID)"
+                        disabled="@(IsEditButtonDisabled(context))">
+                    <i class="bi bi-pencil-square @(context.Status == "Completed" ? "incident__edit-btn" : "")"></i>
+                </button>
+                <button type="button" class="incidents__table-btn incidents__delete-btn"
+                        @onclick="()=>ToggleDeleteConfirmationModal(context.Incident_ID)"
+                        disabled="@(IsEditButtonDisabled(context))">
+                    <i class="bi bi-trash3-fill  @(context.Status == "Completed" ? "incident__delete-btn" : "")"></i>
+                </button>
+              @*
+                @if (IsAdmin)
+                {
+                <button type="button" class="incidents__table-btn incidents__delete-btn"
+                @onclick="()=>ToggleDeleteConfirmationModal(context.Incident_ID)"
+                disabled="@(context.Status == "Completed")">
+                <i class="bi bi-trash3-fill  @(context.Status == "Completed" ? "incident__delete-btn" : "")"></i>
+                </button>
+                }
+              *@
+            </TemplateColumn>
+        </FluentDataGrid>
+    }
+    else
+    {
+    <div class="incidents__no-data">
+        <p style="font-size: 1.25rem;">No data to show</p>
+    </div>
+    }
+</div>
+
+<div class="incidents__pagination">
+    <div>
+        <FluentSwitch @bind-Value="altcolor" Label="Alternative hover color" Style="margin-top: 0.5rem;"></FluentSwitch>
+    </div>
+    <FluentPaginator State="@pagination">
+        <PaginationTextTemplate>
+            Page <strong>@(pagination.CurrentPageIndex + 1)</strong> out of <strong>@(pagination.LastPageIndex + 1)</strong> pages
+        </PaginationTextTemplate>
+    </FluentPaginator>
+</div>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    public Incidents_TBL IncidentModel { get; set; } = new();
+    private List<Incidents_TBL> Incident { get; set; } = new();
+    private DateTime? DoubleClickToDate = null;
+    private DateTime? selectedDate = null; 
+
+    private HubConnection? hubConnection;
+
+    private string currentUserName;
+    private string searchTerm = string.Empty; 
+    private string status = "Completed";
+
+    private int Selected_ID { get; set; }
+    private int numResults = 0;
+    private int pending = 0;
+    private int completed = 0;
+    private int routine = 0;
+    private int important = 0;
+    private int urgent = 0;
+    private int others = 0;
+
+    private bool _visibleL, _visibleR;
+    private bool isSortByVisible = false;
+    private bool isFilterPriorityVisible = false;
+    private bool isIncidentModalFormVisible = false;
+    private bool isConfirmationModalVisible = false;
+    private bool isEditIncidentModalFormVisible = false;
+    private bool IsAdmin { get; set; }
+    private bool sortByDescending = true; 
+    private bool isRoutineSelected = true;
+    private bool isImportantSelected = true;
+    private bool isUrgentSelected = true;
+    private bool isOthersSelected = true;
+    private bool isPendingSelected = true;
+    private bool isCompletedSelected = true;
+    private bool altcolor = false;
+
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private Dictionary<string, int> priorityCounts = new Dictionary<string, int>
+    {
+        { "Urgent", 0 },
+        { "Important", 0 },
+        { "Routine", 0},
+        { "Others", 0 }
+    };
+
+    private IQueryable<Incidents_TBL> FilteredAndSortedIncidents =>
+    string.IsNullOrWhiteSpace(searchTerm)
+        ? (sortByDescending
+            ? Incident.Where(i =>
+                ((isRoutineSelected && i.Priority == "Routine") ||
+                 (isImportantSelected && i.Priority == "Important") ||
+                 (isUrgentSelected && i.Priority == "Urgent") ||
+                 (isOthersSelected && i.Priority == "Others")) &&
+                ((isPendingSelected && i.Status == "Pending") || (isCompletedSelected && i.Status == "Completed")) &&
+                 (!selectedDate.HasValue || i.Date_Reported.Date == selectedDate.Value.Date) 
+            ).OrderByDescending(i => i.Date_Reported) 
+            : Incident.Where(i =>
+                ((isRoutineSelected && i.Priority == "Routine") ||
+                 (isImportantSelected && i.Priority == "Important") ||
+                 (isUrgentSelected && i.Priority == "Urgent") ||
+                 (isOthersSelected && i.Priority == "Others")) &&
+                ((isPendingSelected && i.Status == "Pending") || (isCompletedSelected && i.Status == "Completed")) &&
+                 (!selectedDate.HasValue || i.Date_Reported.Date == selectedDate.Value.Date) 
+            ).OrderBy(i => i.Date_Reported)) 
+        .AsQueryable()
+        : (sortByDescending
+            ? Incident.Where(i =>
+                i.Incident_ID.ToString().Contains(searchTerm) &&
+                ((isRoutineSelected && i.Priority == "Routine") ||
+                 (isImportantSelected && i.Priority == "Important") ||
+                 (isUrgentSelected && i.Priority == "Urgent") ||
+                 (isOthersSelected && i.Priority == "Others")) &&
+                ((isPendingSelected && i.Status == "Pending") || (isCompletedSelected && i.Status == "Completed")) &&
+                 (!selectedDate.HasValue || i.Date_Reported.Date == selectedDate.Value.Date) 
+            ).OrderByDescending(i => i.Date_Reported) 
+            : Incident.Where(i =>
+                i.Incident_ID.ToString().Contains(searchTerm) &&
+                ((isRoutineSelected && i.Priority == "Routine") ||
+                 (isImportantSelected && i.Priority == "Important") ||
+                 (isUrgentSelected && i.Priority == "Urgent") ||
+                 (isOthersSelected && i.Priority == "Others")) &&
+                ((isPendingSelected && i.Status == "Pending") || (isCompletedSelected && i.Status == "Completed")) &&
+                 (!selectedDate.HasValue || i.Date_Reported.Date == selectedDate.Value.Date) 
+            ).OrderBy(i => i.Date_Reported)) 
+        .AsQueryable();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UserAuthentication();
+        await LoadIncidents();
+    }
+
+    public async Task LoadIncidents()
+    {
+        try
+        {
+            var incidents = await IncidentService.GetAllIncidentsAsync();
+            Incident.Clear();
+            Incident.AddRange(incidents);       
+            numResults = Incident.Count;
+            completed = Incident.Count(i => i.Status == "Completed");
+            pending = Incident.Count(i => i.Status == "Pending");
+            others = Incident.Count(i => i.Priority == "Others" && i.Status == "Pending");
+            routine = Incident.Count(i => i.Priority == "Routine" && i.Status == "Pending");
+            important = Incident.Count(i => i.Priority == "Important" && i.Status == "Pending");
+            urgent = Incident.Count(i => i.Priority == "Urgent" && i.Status == "Pending");
+
+            priorityCounts["Urgent"] = urgent;
+            priorityCounts["Important"] = important;
+            priorityCounts["Routine"] = routine;
+            priorityCounts["Others"] = others;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading incidents: {ex.Message}");
+        }
+    }
+
+    public async Task UserAuthentication()
+    {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        IsAdmin = user.IsInRole("Admin");
+        currentUserName = user.Identity.Name;
+    }
+
+    private void OnSearchChanged()
+    {
+        StateHasChanged(); 
+    }
+
+    private void OnAddIncidentModalClose()
+    {
+        isIncidentModalFormVisible = false;
+    }
+
+    private void OnConfirmationModalClose()
+    {
+        isConfirmationModalVisible = false;
+    }
+
+    private void OnEditIncidentModalClose()
+    {
+        isEditIncidentModalFormVisible = false;
+    }
+
+    private void ToggleAddIncidentModal()
+    {
+        isIncidentModalFormVisible = !isIncidentModalFormVisible;
+    }
+
+    private void ViewIncidentDetails(Incidents_TBL model)
+    {
+        NavigationManager.NavigateTo($"view-incident-details/{model.Incident_ID}");
+    }
+
+    private void ToggleEditIncidentModal(int Incident_ID)
+    {
+        Selected_ID = Incident_ID;
+        isEditIncidentModalFormVisible = !isEditIncidentModalFormVisible;
+    }
+
+    private void ToggleDeleteConfirmationModal(int Incident_ID)
+    {
+        Selected_ID = Incident_ID;
+        isConfirmationModalVisible = !isConfirmationModalVisible;
+    }
+
+    private void ToggleSortBy()
+    {
+        isSortByVisible = !isSortByVisible;
+        if (isSortByVisible) isFilterPriorityVisible = false;
+    }
+
+    private void SetSortOrder(bool isAscending)
+    {
+        sortByDescending = !isAscending; 
+        isSortByVisible = false; 
+    }
+
+    private void ToggleFilterPriority()
+    {
+        isFilterPriorityVisible = !isFilterPriorityVisible;
+        if (isFilterPriorityVisible) isSortByVisible = false;
+    }
+
+    private void OnFilterDate(ChangeEventArgs e)
+    {
+        if (DateTime.TryParse(e.Value?.ToString(), out var date))
+        {
+            selectedDate = date;
+        }
+        else
+        {
+            selectedDate = null; 
+        }
+    }
+
+    private bool IsEditButtonDisabled(Incidents_TBL incident)
+    {
+        return (IsAdmin && incident.Status == "Completed") ||
+               (!IsAdmin && (incident.Status == "Completed" || incident.Department_Head != currentUserName));
+    }
+
+
+    private async Task OnIncidentSaved() => await LoadIncidents();
+
+    private async Task OnIncidentUpdate() => await LoadIncidents();
+
+    private async Task DeleteSelectedID() => await LoadIncidents();
+   
+}

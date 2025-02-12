@@ -1,0 +1,19 @@
+﻿.footer__container {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 25px !important;
+    padding: 0 1rem;
+    color: var(--color-darkmidnightblue);
+    background-color: var(--color-lightGray) !important;
+    box-shadow: rgba(0, 0, 0, 0.4) 0px 30px 90px !important;
+    /*    background-color: var(--color-darkmidnightblue);*/
+    z-index: 2;
+}
+
+.footer__version {
+    width: fit-content;
+    font-weight: 600;
+    margin-top: 1rem;
+}

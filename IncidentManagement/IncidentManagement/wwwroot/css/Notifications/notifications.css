@@ -1,0 +1,100 @@
+﻿
+.notification fluent-dialog[b-dsxskpj5rr]::part(control) {
+    position: absolute;
+    top: 65px;
+    right: 14px;
+    width: fit-content;
+    height: 480px;
+    overflow-y: auto;
+    padding: 0.85rem;
+}
+.notification__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.notification__title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.25rem;
+    margin-bottom: 1.15rem;
+    color: var(--color-darkmidnightblue) !important;
+}
+
+.notification__settings-icon {
+    font-size: 1.25rem;
+    margin-top: -13px;
+    cursor: pointer;
+}
+
+.notification__search-input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    box-shadow: rgba(0, 0, 0, 0.02) 0px 1px 3px 0px, rgba(27, 31, 35, 0.15) 0px 0px 0px 1px;
+}
+
+.notification__details {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.25rem;
+    border-radius: 8px;
+}
+.notification__details:nth-child(even) {
+    background-color: #f2f2f2;
+}
+.notification__details:hover {
+    background-color: #e0e0e0;
+}
+
+.notification__user-image {
+    width: 50px;
+}
+.notification__body{
+    flex: 1;
+}
+.notification__date {
+    text-align: right !important;
+    margin-right: 0.35rem;
+}
+.notification__date-reported {
+    font-size: 0.85rem !important;
+}
+.notification__user-username {
+    font-weight: 500 !important;
+}
+.notification__info-incident-name {
+    color: var(--color-darkmidnightblue);
+}
+.notification__time {
+    font-size: 0.8rem;
+    color: var(--color-black);
+}
+
+.notification__view-more {
+    width: 100%;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    border-radius: 8px;
+    color: var(--color-darkmidnightblue);
+    background-color: transparent;
+    border: none;
+    outline: none;
+    border: 1px solid var(--color-lightGray);
+    transition: 0.25s ease-in-out;
+}
+
+
+.hide__notification {
+    display: none;
+}
+.show__notification {
+    display: block;
+}

@@ -1,0 +1,134 @@
+﻿@*@rendermode InteractiveAuto*@
+@rendermode @(new InteractiveAutoRenderMode(false))
+
+<div class="confirmation__modal__overlay @(isConfirmationModalVisible ? "show__confirmation__modal" : "hide__confirmation__modal" )">
+    <div class="confirmation__modal">
+        <div class="confirmation__modal__header">
+            <h5 class="confirmation__modal__header__title">INCIDENT ID : @SelectedIncidentID</h5>
+        </div>
+        <div class="confirmation__modal__body">
+            <h5>Are you sure want to delete?</h5>
+        </div>
+        <div class="confirmation__modal__footer">
+            <button type="button" class="confirmation__modal__btn confirmation__modal__btn-cancel" @onclick="CloseModal">Cancel</button>
+            <button type="button" class="confirmation__modal__btn confirmation__modal__btn-delete" @onclick="ConfirmDelete">Delete</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Incidents_TBL> ReturnIncident { get; set; } = new();
+    [Parameter] public string Incident_ID { get; set; }
+    [Parameter] public int SelectedIncidentID { get; set; }
+    [Parameter] public bool isConfirmationModalVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnConfirm { get; set; }
+
+    private HubConnection? hubConnection;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadIncidentHubConfirmation();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(Incident_ID))
+        {
+            if (int.TryParse(Incident_ID, out var parsedID))
+            {
+                await IncidentService.GetIncidentByIdAsync(parsedID);
+            }
+            else
+            {
+                Console.WriteLine($"Invalid ID format: {Incident_ID}");
+            }
+        }
+    }
+
+
+    public async Task LoadIncidentHubConfirmation()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/incidentHub"))
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Information);  
+            })
+            .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30) })  
+            .Build();
+        hubConnection.On<int>("DeleteIncident", async (incidentToDelete) =>
+        {
+            await InvokeAsync(() =>
+            {
+                OnConfirm.InvokeAsync(null);  
+                Console.WriteLine($"Deleted ID with SignalR: {incidentToDelete}");  
+                StateHasChanged();  
+            });
+        });
+        try
+        {
+            await hubConnection.StartAsync();
+            await JS.InvokeVoidAsync("console.log", "SignalR connection established.");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"SignalR connection failed: {ex.Message}");
+        }
+        hubConnection.Reconnecting += (exception) =>
+        {
+            Console.WriteLine("Reconnecting to SignalR...");
+            return Task.CompletedTask;
+        };
+        hubConnection.Closed += async (exception) =>
+        {
+            Console.Error.WriteLine("SignalR connection closed. Attempting to reconnect...");
+            await Task.Delay(5000);  
+            await LoadIncidentHubConfirmation();  
+        };
+    }
+ 
+    private async void CloseModal()
+    {
+        await OnClose.InvokeAsync(null);
+    }
+
+    private async Task ConfirmDelete()
+    {
+        // <--- establish a list before delete initialization
+        var incidents = await IncidentService.GetAllIncidentsAsync();
+        ReturnIncident.Clear();
+        ReturnIncident.AddRange(incidents);
+        // establish a list before delete initialization --->
+        var incidentToDelete = ReturnIncident.FirstOrDefault(i => i.Incident_ID == SelectedIncidentID);
+        if (incidentToDelete != null)
+        {
+            try
+            {
+                await IncidentService.DeleteIncidentAsync(incidentToDelete.Incident_ID);
+                ReturnIncident.Remove(incidentToDelete);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting incident: {ex.Message}");
+            }
+        }
+        else
+        {
+            Console.WriteLine($"Failed to delete incident with ID: {SelectedIncidentID}. Incident not found in list.");
+        }
+        if (hubConnection != null)
+        {
+            await hubConnection.SendAsync("DeleteIncidentByID", SelectedIncidentID);
+        }
+        else
+        {
+            Console.Error.WriteLine("Failed to delete incident. SignalR connection is not established.");
+        }
+        await OnConfirm.InvokeAsync(null);
+        CloseModal();
+    }
+}
+
+

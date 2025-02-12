@@ -1,0 +1,34 @@
+﻿@page "/page-not-found/{statusCode:int}"
+
+
+<PageTitle>@_heading</PageTitle>
+
+
+<div class="page__not__found">
+    <div class="page__not__found-text">
+        <h1 class="page__not__found-subTitle">Ooops...</h1>
+        <label class="page__not__found-title">Page Not Found</label>
+        <label class="page__not__found-desc">Looks like the page you're looking for doesn't exist.</label>
+        <label class="page__not__found-desc">Please check the URL or return to the homepage to continue browsing.</label>
+        <a href="/dashboard" class="page__not__found-backBtn"><i class="bi bi-arrow-left"></i> Back</a>
+    </div>
+    <div class="page__not__found__image">
+        <img src="assets\pagenotfound\pagenotfound.png" />
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int statusCode { get; set; }
+
+
+    private bool _is404;
+    private string _heading;
+
+
+    protected override void OnInitialized()
+    {
+        _is404 = statusCode == 404;
+        _heading = _is404 ? "Error 404 | Page Not Found" : $"Error {statusCode}";
+    }
+}

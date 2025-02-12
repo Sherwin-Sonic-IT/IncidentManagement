@@ -1,0 +1,30 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using IncidentManagement.Client.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.JSInterop
+@using IncidentManagement.Client
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using IncidentManagement.Client.Modals
+@using SharedLibrary.Dictionaries
+@using SharedLibrary.Interfaces
+@using SharedLibrary.Models
+@using IncidentManagement.Client.Components.Notification
+@using Microsoft.AspNetCore.SignalR.Client
+@using IncidentManagement.Client.Layout
+@using Microsoft.AspNetCore.SignalR.Client
+@using System.Drawing
+
+
+@inject NavigationManager NavigationManager
+@inject IIncident IncidentService
+@inject IBoard BoardService
+@inject IJSRuntime JS
+@inject IncidentFormDictionary IncidentFormDictionary

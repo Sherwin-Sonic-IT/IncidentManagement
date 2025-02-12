@@ -1,0 +1,362 @@
+﻿@*@rendermode InteractiveAuto*@
+@rendermode @(new InteractiveAutoRenderMode(false))
+
+<div class="new__incident-modal-overlay @(isIncidentModalFormVisible ? "show__new__incident-modal" : "hide__new__incident-modal")">
+    <div class="new__incident-modal">
+        <div class="new__incident-modal-header">
+            <h5 class="new__incident-modal-header-title">NEW INCIDENT </h5>
+        </div>
+
+        <div class="new__incident-modal-reminder">
+            <i class="bi bi-exclamation-circle"></i> <p> You will be notified once your incident has been reviewed and actioned. Please check dashboard for updates.</p>
+        </div>
+
+        <EditForm Model="IncidentModel" OnValidSubmit="HandleSave" FormName="AddIncident">
+            <DataAnnotationsValidator />
+            @* <ValidationSummary />*@
+            <div class="new__incident-modal-body">
+                <div class="new__incident-modal-form-group">
+                    <div class="new__incident-modal-input-group">
+                        <label>Incident Date</label>
+                        <InputDate @bind-Value="IncidentModel.Incident_Date" min=@DateTime.Today.AddMonths(-1).ToString("yyyy'-'MM'-'dd")
+                                   max=@DateTime.Today.ToString("yyyy'-'MM'-'dd") />
+                    </div>
+                    <div class="new__incident-modal-input-group">
+                        <label>Requested By</label>
+                        <InputText @bind-Value="IncidentModel.Reported_By" required/>
+                    </div>
+                </div>
+                <div class="new__incident-modal-form-group">
+                    <div class="new__incident-modal-input-group">
+                        <label>Location/Dept.</label>
+                        <InputSelect @bind-Value="IncidentModel.Location" disabled="@string.IsNullOrEmpty(IncidentModel.Reported_By)" required>
+                            <option value="">--Select a location--</option>
+                            @foreach (var locationGroup in IncidentFormDictionary.LocationDepartments.Keys)
+                            {
+                                <option disabled style="background-color: #e5e4e2; color: darkblue">@locationGroup</option>
+                                @foreach (var department in IncidentFormDictionary.LocationDepartments[locationGroup])
+                                {
+                                    <option value="@department">@department</option>
+                                }
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="new__incident-modal-input-group">
+                        <label>Department Head</label>
+                        <InputSelect @bind-Value="IncidentModel.Department_Head" disabled="@string.IsNullOrEmpty(IncidentModel.Location)" required>
+                            @foreach (var incident in GetDepartmentHeadForLocationDepartment(IncidentModel.Location))
+                            {
+                                <option value="@incident">@incident</option>
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+                <div class="new__incident-modal-form-group">
+                    <div class="new__incident-modal-input-group">
+                        <div class="new__incident-modal-label-category">
+                            <label>Category</label> <i @onclick="IsCategoryDisabled ? null : ResetCategory" class="bi bi-arrow-clockwise @(!IsCategoryDisabled ? "enable__new__incident-modal-reset-category-icon" : "disabled__new__incident-modal-reset-category-icon")"></i>
+                        </div>
+                        <InputSelect @bind-Value="IncidentModel.Category" disabled="@(string.IsNullOrEmpty(IncidentModel.Department_Head) || !string.IsNullOrEmpty(IncidentModel.Incident_Name))" required>
+                            <option value="">--Select a category--</option>
+                            <option value="Service Disruption">Service Disruption</option>
+                            <option value="Category 2">Category 2</option>
+                            <option value="Others">Others</option>
+                        </InputSelect>
+                    </div>
+                    <div class="new__incident-modal-input-group">
+                        <label>Incident Name</label>
+                        @if (IncidentModel.Category == "Others")
+                        {
+                            <InputText @bind-Value="IncidentModel.Incident_Name" disabled="@string.IsNullOrEmpty(IncidentModel.Category)" required />
+                        }
+                        else
+                        {
+                        <InputSelect @bind-Value="IncidentModel.Incident_Name" disabled="@string.IsNullOrEmpty(IncidentModel.Category)" required>
+                                <option value="">--Select an incident--</option>
+                        @foreach (var incident in GetIncidentNamesForCategory(IncidentModel.Category))
+                        {
+                        <option value="@incident">@incident</option>
+                        }
+                        </InputSelect>                                                
+                        }
+                    </div>                  
+                </div>
+                <div class="new__incident-modal-form-group">
+                    <div class="new__incident-modal-input-group">
+                        <label>Priority</label>
+                        @if (IncidentModel.Category == "Others")
+                        {
+                            <InputSelect @bind-Value="IncidentModel.Priority" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
+                                @if (!IsAdmin)
+                                {
+                                    <option></option>
+                                    <option value="Others">Others</option>
+                                }else
+                                {
+                                    <option></option>
+                                    <option value="Others">Others</option>
+                                    <option value="Routine">Routine</option>
+                                    <option value="Important">Important</option>
+                                    <option value="Urgent">Urgent</option>
+                                }
+                            </InputSelect>
+                        }
+                        else
+                        {
+                            <InputSelect @bind-Value="IncidentModel.Priority" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
+                                @foreach (var incident in GetPriorityForIncidentName(IncidentModel.Incident_Name))
+                                {
+                                    <option value="@incident">@incident</option>
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+                    <div class="new__incident-modal-input-group">
+                        <label>Resolver Name</label>
+                        @if (IncidentModel.Category == "Others")
+                        {
+                            <InputText @bind-Value="IncidentModel.Resolver_Name" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required />
+                        }
+                        else
+                        {
+                            <InputSelect @bind-Value="IncidentModel.Resolver_Name" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
+                                @foreach (var incident in GetResolverForIncidentName(IncidentModel.Incident_Name))
+                                {
+                                    <option value="@incident">@incident</option>
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="new__incident-modal-footer">
+                <button type="submit" class="new__incident-modal-btn new__incident-modal-btn-save">Save</button>
+                <button type="button" class="new__incident-modal-btn new__incident-modal-btn-cancel" @onclick="CloseModal">Cancel</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+
+
+@code {
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+    [Parameter] public string Incident_ID { get; set; }
+    [Parameter] public bool isIncidentModalFormVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    public Incidents_TBL IncidentModel { get; set; } = new();
+    private Incidents_TBL ReturnIncident = new();
+
+    private HubConnection? hubConnection;
+
+    private bool IsAdmin { get; set; }
+    private bool IsCategoryDisabled => string.IsNullOrEmpty(IncidentModel.Incident_Name);
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await userAuth();
+        await LoadIncidentHubNew();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(Incident_ID))
+        {
+            if (int.TryParse(Incident_ID, out var parsedID))
+            {
+                IncidentModel = await IncidentService.GetIncidentByIdAsync(parsedID);
+            }
+            else
+            {
+                Console.WriteLine($"Invalid ID format: {Incident_ID}");
+            }
+        }
+        else
+        {
+            IncidentModel = new Incidents_TBL();
+            IncidentModel.Date_Reported = DateTime.Now;
+            IncidentModel.Incident_Date = DateTime.Now;
+        }
+    }
+
+
+    public async Task LoadIncidentHubNew()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/incidentHub"))
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Information);
+            })
+            .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30) })  
+            .Build();
+        hubConnection.On<object>("NewIncident", async (newIncident) =>
+        {
+            await InvokeAsync(() =>
+            {
+                OnSave.InvokeAsync(null);
+                Console.WriteLine($"New Incident received via SignalR: {newIncident}");
+                StateHasChanged();
+            });
+        });
+        try
+        {
+            await hubConnection.StartAsync();
+            await JS.InvokeVoidAsync("console.log", "SignalR connection established.");
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"SignalR connection failed: {ex.Message}");
+        }
+        hubConnection.Reconnecting += (exception) =>
+        {
+            Console.WriteLine("Reconnecting to SignalR...");
+            return Task.CompletedTask;
+        };
+        hubConnection.Closed += async (exception) =>
+        {
+            Console.Error.WriteLine("SignalR connection closed. Attempting to reconnect...");
+            await Task.Delay(5000); 
+            await LoadIncidentHubNew();  
+        };
+    }
+
+    private async Task userAuth()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        IsAdmin = user.IsInRole("Admin");
+    }
+
+    private List<string> GetDepartmentHeadForLocationDepartment(string departmentHead)
+    {
+        if (string.IsNullOrEmpty(departmentHead))
+        {
+            return new List<string>();
+        }
+        else
+        {
+            if (IncidentFormDictionary.DepartmentHeadLocationDepartment.ContainsKey(departmentHead))
+            {
+                var department = IncidentFormDictionary.DepartmentHeadLocationDepartment[departmentHead];
+
+                if (department.Any())
+                {
+                    IncidentModel.Department_Head = department.First();
+                }
+
+                return department;
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+    }
+
+
+    private List<string> GetIncidentNamesForCategory(string category)
+    {
+        try
+        {
+            return string.IsNullOrEmpty(category) || !IncidentFormDictionary.CategoryIncidentNames.ContainsKey(category)
+                ? new List<string>()
+                : IncidentFormDictionary.CategoryIncidentNames[category];
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+
+
+    private List<string> GetPriorityForIncidentName(string incidentName)
+    {
+        if (string.IsNullOrEmpty(incidentName))
+        {
+            return new List<string>();
+        }
+        else
+        {
+            if (IncidentFormDictionary.IncidentNamePriority.ContainsKey(incidentName))
+            {
+                var priorities = IncidentFormDictionary.IncidentNamePriority[incidentName];
+
+                if (priorities.Any())
+                {
+                    IncidentModel.Priority = priorities.First();
+                }
+
+                return priorities;
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+    }
+
+    private List<string> GetResolverForIncidentName(string incidentName)
+    {
+        if (string.IsNullOrEmpty(incidentName))
+        {
+            return new List<string>();
+        }
+        else
+        {
+            if (IncidentFormDictionary.ResolverIncidentName.ContainsKey(incidentName))
+            {
+                var resolver = IncidentFormDictionary.ResolverIncidentName[incidentName];
+
+                if (resolver.Any())
+                {
+                    IncidentModel.Resolver_Name = resolver.First();
+                }
+
+                return resolver;
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+    }
+
+    private void ResetCategory()
+    {
+        IncidentModel.Category = "";
+        IncidentModel.Incident_Name = null;  
+        IncidentModel.Priority = null;        
+        IncidentModel.Resolver_Name = null;   
+    }
+
+    private async void CloseModal()
+    {
+        await OnClose.InvokeAsync(null);
+    }
+
+    private async Task HandleSave()
+    {
+        if (IncidentModel.Incident_ID == 0)
+        {
+           ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
+        }
+        if (hubConnection != null)
+        {
+            await hubConnection.SendAsync("AddNewIncident", IncidentModel);
+        }
+        else
+        {
+            Console.Error.WriteLine("Failed to add new incident. SignalR connection is not established.");
+        }
+        await OnSave.InvokeAsync(null);
+        CloseModal();
+    }
+}
+
+
+
+

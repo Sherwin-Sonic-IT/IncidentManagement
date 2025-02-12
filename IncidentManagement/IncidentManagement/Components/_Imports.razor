@@ -1,0 +1,28 @@
+﻿@using System.Net.Http
+@using System.Net.Http.Json
+@using IncidentManagement.Data
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.JSInterop
+@using IncidentManagement
+@using IncidentManagement.Client
+@using IncidentManagement.Client.Layout
+@using IncidentManagement.Components
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using SharedLibrary.Models
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using IncidentManagement.Components.Layout
+
+
+
+@inject DataContext dataContext
+@inject NavigationManager navigationManager
+@inject IJSRuntime js
+

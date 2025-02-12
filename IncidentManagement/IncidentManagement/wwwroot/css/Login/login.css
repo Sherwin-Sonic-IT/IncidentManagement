@@ -1,0 +1,249 @@
+﻿
+/*header */
+.login {
+    height: 100vh;
+    position: relative;
+}
+.login__header {
+    padding: 1.25rem 10rem !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center;
+}
+.login__header__logo {
+    font-size: 1.5rem;
+    color: var(--color-white);
+}
+.login__header__links {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+}
+.login__header__links a {
+    position: relative;
+    padding-bottom: 0.25rem;
+    font-weight: 600;
+    color: var(--color-white);
+}
+.login__header__links a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 0%;
+    height: 2px;
+    background-color: var(--color-white);
+    transition: 0.25s ease-in-out;
+}
+.login__header__links a:hover::before {
+    width: 100%;
+}
+
+
+/*container */
+.login__container {
+    padding: 1rem 10rem 1rem 10rem;
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+}
+.login__form {
+    flex: 1;
+}
+.login__form__subtext {
+    color: var(--color-darkmidnightblue);
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+}
+.login__form__title {
+    font-size: 4rem;
+    padding-bottom: 0.35rem !important;
+    color: var(--color-darkmidnightblue);
+}
+.typing-animation {
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 3px solid #000;
+    animation: typing 3s steps(40) 1s forwards infinite, blink 0.7s step-end infinite !important;
+}
+@keyframes typing {
+    0% {
+        width: 0;
+    }
+
+    50% {
+        width: 40%;
+    }
+
+    100% {
+        width: 49%;
+    }
+}
+
+@keyframes blink {
+    0% {
+        border-right-color: transparent;
+    }
+
+    50% {
+        border-right-color: black;
+    }
+
+    100% {
+        border-right-color: transparent;
+    }
+}
+
+.login__form__description {
+    font-size: 1.05rem;
+    line-height: 2rem;
+    max-width: 600px !important;
+    margin: 2.25rem 0 1rem 0;
+}
+
+
+.login__form__form {
+    width: 400px !important;
+}
+.login__form__input {
+    width: 100% !important;
+    margin: 0.75rem 0;
+    padding: 0.5rem;
+    border: none;
+    border-bottom: 1px solid var(--color-lightGray);
+    outline: none;
+}
+.login__form__input:focus {
+    background-color: var(--color-whitesmoke);
+    border-bottom: 1px solid var(--color-darkmidnightblue);
+}
+.login__form__submit-btn {
+    padding: 0.75rem;
+    margin-top: 1.5rem;
+    width: 100%;
+    color: var(--color-white);
+    background-color: var(--color-darkmidnightblue);
+    border: none;
+    outline: none;
+    transition: 0.25s ease-in-out;
+    position: relative;
+}
+.login__form__submit-btn::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: -70px;
+    width: 75px;
+    height: 1px;
+    background-color: var(--color-white);
+    opacity: 0;
+    transition: 0.25s ease-in-out;
+}
+.login__form__submit-btn:hover::before {
+    left: 70px;
+    opacity: 1;
+}
+
+.login__form__submit-btn::after {
+    content: '';
+    position: absolute;
+    top: 20px;
+    right: -70px;
+    width: 75px;
+    height: 1px;
+    background-color: var(--color-white);
+    opacity: 0;
+    transition: 0.25s ease-in-out;
+}
+.login__form__submit-btn:hover::after {
+    right: 70px;
+    opacity: 1;
+}
+
+
+
+
+
+/*image */
+.login__form__image__container {
+    flex: 1;
+    margin-top: -1rem;
+    border-radius: 15px;
+}
+.login__form__image {
+    width: 100% !important;
+    height: 800px;
+    position: relative;
+    z-index: 55 !important;
+}
+
+/*.login__form__image__container {
+     flex: 1;
+     background-image: url('../../assets/login/sean-pollock-phyq704ffda-unsplash.jpg');
+     background-repeat: no-repeat;
+     background-position: center;
+     background-size: cover;
+     width: 500px !important;
+     height: 500px !important;
+     box-shadow: 0 20px 5px 5px rgba(0,0,0,0.2);
+     animation: animate 5s ease-in-out infinite;
+     transition: all 1s ease-in-out;
+}
+@keyframes animate {
+    0% {
+        border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+    }
+    50% {
+        border-radius: 30% 60% 70% 40%/50% 60% 30% 60%;
+    }
+    100% {
+        border-radius: 60% 40% 30% 70%/60% 30% 70% 40%;
+    }
+}*/
+
+
+
+
+
+.login__wave__svg__top {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    transform: rotate(180deg);
+    z-index: -1;
+}
+.login__wave__svg__bottom {
+    position: absolute !important;
+    left: 0;
+    bottom: 0;
+    z-index: -1;
+}
+
+
+
+/*footer */
+.login__footer {
+    width: 100%;
+    padding: 1rem 10rem;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    color: var(--color-white);
+    border-top: 1px dashed var(--color-white) !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1;
+}
+
+/*error message */
+.login__form__errorMessage {
+    gap: 1rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    text-align: center;
+    color: var(--color-white);
+    background-color: var(--color-indianred);
+}

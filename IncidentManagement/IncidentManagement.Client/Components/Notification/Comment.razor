@@ -1,0 +1,85 @@
+﻿@rendermode @(new InteractiveAutoRenderMode(false))
+
+
+<div class="comment__notification">
+    <FluentDialog @ref="dialog" Modal="@_modal" @ondialogdismiss="OnDismiss" Class="@(isCommentNotificationVisible ? "show__comment-notification" : "hide__comment-notification")">
+        @if(displayCount > 0)
+        {
+            @foreach (var comment in comments.Take(displayCount))
+            {
+                <div class="comment__notification-details" @onclick="() => NavigateToIncidentDetails(comment.Incident_ID)">
+                    <i class="bi bi-chat-left-text-fill"></i>
+                    <div class="comment__notification-detail-content">
+                        <span>Comment</span> <i class="bi bi-dot"></i> <span>1min</span>
+                        <p class="comment__notification-from-user"><strong>New comment from: @comment.Username</strong></p>
+                        <label class="comment__notification-message">
+                            @(comment.Comment.Length > 50 ? comment.Comment.Substring(0, 30) + "..." : comment.Comment)
+                        </label>
+                    </div>
+                    <img src="\assets\requesterphoto\person.jpg" />
+                </div>
+            }
+        }
+        else
+        {
+            <p>No new notification today.</p>
+        }
+
+        @if (displayCount < comments.Count)
+        {
+            <button class="notification__view-more" @onclick="ShowMoreComments">View More</button>
+        }
+    </FluentDialog>
+</div>
+
+
+
+@code {
+    [Parameter] public bool isCommentNotificationVisible { get; set; }
+    [Parameter] public EventCallback<bool> isCommentNotificationVisibleChanged { get; set; }
+    private FluentDialog? dialog;
+    private bool _modal = true;
+    private List<Board_TBL> comments = new List<Board_TBL>();
+
+    private int displayCount = 5;
+
+    protected override async Task OnInitializedAsync()
+    {
+        comments = await BoardService.GetAllCommentsAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (isCommentNotificationVisible)
+        {
+            dialog?.Show();
+        }
+        else
+        {
+            dialog?.Hide();
+        }
+    }
+
+    private void OnDismiss(DialogEventArgs args)
+    {
+        if (args.Reason == "dismiss")
+        {
+            dialog?.Hide();
+            isCommentNotificationVisibleChanged.InvokeAsync(false);
+        }
+    }
+
+    private void ShowMoreComments()
+    {
+        displayCount += 5;
+    }
+
+    private void NavigateToIncidentDetails(int incidentId)
+    {
+        isCommentNotificationVisibleChanged.InvokeAsync(false);
+        NavigationManager.NavigateTo($"/view-incident-details/{incidentId}");
+    }
+
+
+}
+

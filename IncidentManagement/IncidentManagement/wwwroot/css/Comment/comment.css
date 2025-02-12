@@ -1,0 +1,53 @@
+﻿.comment__notification fluent-dialog[b-dsxskpj5rr]::part(control) {
+    position: absolute;
+    top: 65px;
+    width: 400px;
+    right: 14px;
+    height: 470px;
+    overflow-y: auto;
+    padding: 0.85rem;
+}
+
+.comment__notification-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+/*    gap: 1rem;*/
+    padding: 1rem;
+    border-radius: 8px;
+}
+.comment__notification-detail-content {
+    margin-left: -30px;
+}
+.comment__notification-details:nth-child(even) {
+    background-color: #f2f2f2;
+}
+.comment__notification-details:hover {
+    background-color: #e0e0e0;
+}
+.comment__notification-details .bi-chat-left-text-fill{
+    font-size: 1.25rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 25px;
+    color: var(--color-white);
+    background-color: var(--color-lightSkyBlue);
+}
+.comment__notification-from-user {
+    margin: 0.25rem 0;
+}
+.comment__notification-details img {
+    width: 50px;
+    height: 50px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    border-radius: 50%;
+}
+
+
+.show__comment-notification {
+    display: block;
+}
+.hide__comment-notification {
+    display: none;
+}

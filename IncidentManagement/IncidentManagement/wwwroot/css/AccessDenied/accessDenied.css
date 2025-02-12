@@ -1,0 +1,24 @@
+﻿.access__denied__container {
+    width: 100%;
+    height: 80vh;
+    flex-direction: column;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.access__denied__title {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--color-red);
+    font-size: 2rem;
+}
+.access__denied__title .bi {
+    font-size: 2rem;
+}
+.access__denied__subtitle {
+    font-size: 1.25rem;
+    font-weight: 500;
+    margin-top: 1rem;
+}
