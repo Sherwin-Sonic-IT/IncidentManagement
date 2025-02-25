@@ -1,5 +1,7 @@
 ﻿@page "/incidents"
+@attribute [Authorize(Roles = "Admin, User")]
 @using Microsoft.AspNetCore.SignalR.Client
+
 @rendermode @(new InteractiveAutoRenderMode(false))
 
 @if (altcolor)
@@ -12,9 +14,10 @@
 }
 
 <div class="incidents__header">
+    <ToasterCTA IsAddToastVisible="IsAddToastVisible" IsUpdateToastVisible="IsUpdateToastVisible" IsDeleteToastVisible="IsDeleteToastVisible" ToastMessage="@ToastUserActionMessage" OnToastClosed="HandleToastClosed" />
     <p class="incidents__header-title">Incident Records</p>
     <div class="incidents__header-cta">
-        <FluentSearch @bind-Value=searchTerm @oninput="OnSearchChanged" Placeholder="Search incidents by ID" style="width: 100%;"></FluentSearch>
+        <FluentSearch @bind-Value=searchTerm @oninput="OnSearchChanged" Autofocus="false" Placeholder="Search incidents by ID"></FluentSearch>
         <div>
             <FluentButton id="myPopoverButtonr" Appearance="Appearance.Accent" @onclick="() => _visibleR = !_visibleR">
                 Sort By
@@ -27,10 +30,10 @@
         </div>
         <div>
             <FluentButton Appearance="Appearance.Accent" class="incidents__add-new-incident" @onclick="ToggleAddIncidentModal">
-                New Incident <i class="bi bi-plus-lg"></i>
+               <i class="bi bi-plus-lg"></i> New Incident 
             </FluentButton>
         </div>
-        <FluentPopover Style="width: 300px;" VerticalThreshold="170" AnchorId="myPopoverButtonr" @bind-Open="_visibleR">
+        <FluentPopover Style="width: 300px; margin-top: 10px !important;" VerticalThreshold="170" AnchorId="myPopoverButtonr" @bind-Open="_visibleR">
             <Body>
                 <div class="incidents__sortBy-list">
                     <button @onclick="() => SetSortOrder(true)"><i class="bi bi-arrow-up"></i> Ascending</button>
@@ -38,7 +41,7 @@
                 </div>
             </Body>
         </FluentPopover>
-        <FluentPopover Style="width: 300px;" VerticalThreshold="170" AnchorId="myPopoverButtonl" @bind-Open="_visibleL">
+        <FluentPopover Style="width: 300px;  margin-top: 10px !important;" VerticalThreshold="170" AnchorId="myPopoverButtonl" @bind-Open="_visibleL">
             <Body>
                 <FluentStack Orientation="Orientation.Vertical">
                     <label>Priority</label>
@@ -86,18 +89,18 @@
                         OnRowDoubleClick="@(() => Console.WriteLine("Row double clicked!"))"
                         Virtualize="true"
                         ShowHover="true"
-                        ItemSize="50"
+                        ItemSize="45"
                         Pagination="@pagination"
                         GenerateHeader="GenerateHeaderOption.Sticky"
                         TGridItem="Incidents_TBL"
                         Items="FilteredAndSortedIncidents">
-            <PropertyColumn Title="Incident ID" Property="@(c => c!.Incident_ID)" />
-            <PropertyColumn Title="Incident Name" Property="@(c => c!.Incident_Name)" Class="incidents__table__incident__name" />
-            <PropertyColumn Title="Requested By" Property="@(c => c!.Reported_By)" />
-            <PropertyColumn Title="Resolver" Property="@(c => c!.Resolver_Name)" />
-            <PropertyColumn Title="Location" Property="@(c => c!.Location)" />
-            <PropertyColumn Title="Date Reported" Property="@(c => c!.Date_Reported)" />
-            <TemplateColumn Title="Priority" Align="@Align.Start">
+            <PropertyColumn Title="Incident ID" Property="@(c => c!.Incident_ID)" Width="fit-content" />
+            <PropertyColumn Title="Incident Name" Property="@(c => c!.Incident_Name)" Width="fit-content" Class="incidents__table__incident__name" />
+            <PropertyColumn Title="Requested By" Property="@(c => c!.Reported_By)" Width="fit-content" />
+            <PropertyColumn Title="Resolver" Property="@(c => c!.Resolver_Name)" Width="fit-content" />
+            <PropertyColumn Title="Location" Property="@(c => c!.Location)" Width="fit-content" />
+            <PropertyColumn Title="Date Reported" Property="@(c => c!.Date_Reported)" Width="fit-content" />
+            <TemplateColumn Title="Priority" Align="@Align.Start" Width="fit-content" Style="background-color: whitesmoke; display: flex; justify-content: flex-end; align-items: center">
                 @if (context.Priority == "Urgent")
                 {
                     <span class="incidents__table-priority incident__priority-Urgent"> @context.Priority</span>
@@ -115,7 +118,7 @@
                     <span class="incidents__table-priority incident__priority-Others"> @context.Priority</span>
                 }
             </TemplateColumn>
-            <TemplateColumn Title="Status" Align="@Align.Start">
+            <TemplateColumn Title="Status" Align="@Align.Start" Width="fit-content" Style="background-color: whitesmoke">
                 @if (@context.Status == "Completed")
                 {
                     <span class="incidents__table-status incident__status-Completed"><i class="bi bi-check-circle"></i> @context.Status</span>
@@ -126,7 +129,7 @@
                 }
             </TemplateColumn>
 
-            <TemplateColumn Title="Actions" Align="@Align.Start" Width="200px">
+            <TemplateColumn Title="Actions" Align="@Align.Start" Width="fit-content" Style="background-color: whitesmoke">
                 <button type="button" class="incidents__table-btn incindents__view__details__btn" @onclick="() => ViewIncidentDetails(context)">
                     <i class="bi bi-eye-fill" />
                 </button>
@@ -140,16 +143,6 @@
                         disabled="@(IsEditButtonDisabled(context))">
                     <i class="bi bi-trash3-fill  @(context.Status == "Completed" ? "incident__delete-btn" : "")"></i>
                 </button>
-              @*
-                @if (IsAdmin)
-                {
-                <button type="button" class="incidents__table-btn incidents__delete-btn"
-                @onclick="()=>ToggleDeleteConfirmationModal(context.Incident_ID)"
-                disabled="@(context.Status == "Completed")">
-                <i class="bi bi-trash3-fill  @(context.Status == "Completed" ? "incident__delete-btn" : "")"></i>
-                </button>
-                }
-              *@
             </TemplateColumn>
         </FluentDataGrid>
     }
@@ -180,8 +173,6 @@
     private DateTime? DoubleClickToDate = null;
     private DateTime? selectedDate = null; 
 
-    private HubConnection? hubConnection;
-
     private string currentUserName;
     private string searchTerm = string.Empty; 
     private string status = "Completed";
@@ -201,6 +192,10 @@
     private bool isIncidentModalFormVisible = false;
     private bool isConfirmationModalVisible = false;
     private bool isEditIncidentModalFormVisible = false;
+    private bool IsAddToastVisible = false;
+    private bool IsUpdateToastVisible = false;
+    private bool IsDeleteToastVisible = false;
+    private string ToastUserActionMessage = "";
     private bool IsAdmin { get; set; }
     private bool sortByDescending = true; 
     private bool isRoutineSelected = true;
@@ -211,8 +206,12 @@
     private bool isCompletedSelected = true;
     private bool altcolor = false;
 
+    private Timer _timer;
+    private const int RefreshInterval = 30000; 
 
-    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 12 };
 
     private Dictionary<string, int> priorityCounts = new Dictionary<string, int>
     {
@@ -268,6 +267,7 @@
     {
         await UserAuthentication();
         await LoadIncidents();
+        await StartTimer();
     }
 
     public async Task LoadIncidents()
@@ -289,10 +289,36 @@
             priorityCounts["Important"] = important;
             priorityCounts["Routine"] = routine;
             priorityCounts["Others"] = others;
+
+            StateHasChanged();
+
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading incidents: {ex.Message}");
+        }
+    }
+
+    private async Task StartTimer()
+    {
+        _timer = new Timer(RefreshInterval);
+        _timer.Elapsed += async (sender, e) =>
+        {
+            if (!isIncidentModalFormVisible && !isEditIncidentModalFormVisible)  
+            {
+                await InvokeAsync(() => LoadIncidents());
+            }
+        };
+        _timer.Start();
+    }
+
+
+    private void StopTimer()
+    {
+        if (_timer != null)
+        {
+            _timer.Stop();
+            _timer.Dispose();
         }
     }
 
@@ -382,11 +408,33 @@
                (!IsAdmin && (incident.Status == "Completed" || incident.Department_Head != currentUserName));
     }
 
+    private void HandleToastClosed(bool isClosed)
+    {
+        IsAddToastVisible = false;
+        IsUpdateToastVisible = false;
+        IsDeleteToastVisible = false;
+        StateHasChanged();
+    }
 
-    private async Task OnIncidentSaved() => await LoadIncidents();
+    private async Task OnIncidentSaved()
+    {
+        await LoadIncidents();
+        IsAddToastVisible = true;
+        ToastUserActionMessage = "New Incident Report Added";
+    }
 
-    private async Task OnIncidentUpdate() => await LoadIncidents();
+    private async Task OnIncidentUpdate()
+    {
+        await LoadIncidents();
+        IsUpdateToastVisible = true;
+        ToastUserActionMessage = "Incident details updated";
+    }
 
-    private async Task DeleteSelectedID() => await LoadIncidents();
-   
+    private async Task DeleteSelectedID()
+    {
+        await LoadIncidents();
+        IsDeleteToastVisible = true;
+        ToastUserActionMessage = "Incident Deleted";
+    }
+
 }

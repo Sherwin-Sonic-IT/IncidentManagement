@@ -79,6 +79,35 @@ namespace IncidentManagement.Repositories
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
         }
+        public async Task<List<Board_TBL>> GetCommentsByDateAndStatusAsync(DateTime date, string status)
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            return await dbContext.Board_TBL
+                .Where(c => c.CreatedAt.Date == date.Date && c.Status == status)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<Board_TBL> MarkCommentAsReadAsync(int commentId)
+        {
+            using var dbContext = _dbContextFactory.CreateDbContext();
+
+            var comment = await dbContext.Board_TBL
+                .Where(c => c.Comment_ID == commentId)
+                .FirstOrDefaultAsync();
+
+            if (comment == null)
+            {
+                return null;
+            }
+
+            comment.Status = "read";
+            dbContext.Board_TBL.Update(comment);
+            await dbContext.SaveChangesAsync();
+
+            return comment;
+        }
+
 
         public async Task<Board_TBL> AddCommentAsync(Board_TBL comment)
         {

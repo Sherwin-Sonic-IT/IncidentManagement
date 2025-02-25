@@ -17,9 +17,12 @@ namespace IncidentManagement.Migrations
                 {
                     Comment_ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    User_ID = table.Column<int>(type: "int", nullable: false),
+                    Resolver_ID = table.Column<int>(type: "int", nullable: false),
                     Incident_ID = table.Column<int>(type: "int", nullable: false),
                     Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ImageVideoData = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
                     ParentCommentID = table.Column<int>(type: "int", nullable: true)
@@ -35,6 +38,8 @@ namespace IncidentManagement.Migrations
                 {
                     Incident_ID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    User_ID = table.Column<int>(type: "int", nullable: false),
+                    Resolver_ID = table.Column<int>(type: "int", nullable: false),
                     Incident_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Incident_Date = table.Column<DateTime>(type: "datetime2", nullable: false),

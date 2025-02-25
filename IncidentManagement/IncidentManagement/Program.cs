@@ -1,3 +1,4 @@
+using IncidentManagement.Client.Services;
 using IncidentManagement.Components;
 using IncidentManagement.Data;
 using IncidentManagement.Hubs;
@@ -29,7 +30,6 @@ builder.Services.AddScoped(http => new HttpClient
 {
     BaseAddress = new Uri(builder.Configuration.GetSection("BaseAddress").Value!)
 });
-
 // DB Connection 
 
 
@@ -39,7 +39,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     options.Cookie.Name = "auth_token";
     options.LoginPath = "/";
     options.LogoutPath = "/";
-    options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
+    //options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
+    options.Cookie.MaxAge = null;
     options.AccessDeniedPath = "/access-denied";
 });
 builder.Services.AddAuthorization();
@@ -48,11 +49,11 @@ builder.Services.AddCascadingAuthenticationState();
 
 
 //builder.Services.AddSignalR();
-builder.Services.AddSignalR(options =>
-{
-    options.EnableDetailedErrors = true;
-    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
-});
+//builder.Services.AddSignalR(options =>
+//{
+//    options.EnableDetailedErrors = true;
+//    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
+//});
 
 
 
@@ -88,8 +89,8 @@ app.MapRazorComponents<App>()
     .AddInteractiveWebAssemblyRenderMode()
     .AddAdditionalAssemblies(typeof(IncidentManagement.Client._Imports).Assembly);
 
-app.MapHub<CommentHub>("/commentHub");
-app.MapHub<IncidentHub>("/incidentHub");
+//app.MapHub<CommentHub>("/commentHub");
+//app.MapHub<IncidentHub>("/incidentHub");
 
 
 

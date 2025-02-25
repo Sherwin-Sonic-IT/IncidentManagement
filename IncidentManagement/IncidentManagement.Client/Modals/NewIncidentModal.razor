@@ -1,4 +1,4 @@
-﻿@*@rendermode InteractiveAuto*@
+﻿
 @rendermode @(new InteractiveAutoRenderMode(false))
 
 <div class="new__incident-modal-overlay @(isIncidentModalFormVisible ? "show__new__incident-modal" : "hide__new__incident-modal")">
@@ -13,7 +13,7 @@
 
         <EditForm Model="IncidentModel" OnValidSubmit="HandleSave" FormName="AddIncident">
             <DataAnnotationsValidator />
-            @* <ValidationSummary />*@
+           @* <ValidationSummary />*@
             <div class="new__incident-modal-body">
                 <div class="new__incident-modal-form-group">
                     <div class="new__incident-modal-input-group">
@@ -22,15 +22,15 @@
                                    max=@DateTime.Today.ToString("yyyy'-'MM'-'dd") />
                     </div>
                     <div class="new__incident-modal-input-group">
-                        <label>Requested By</label>
-                        <InputText @bind-Value="IncidentModel.Reported_By" required/>
+                        <label>End-User/Affected User</label>
+                        <InputText @bind-Value="IncidentModel.Reported_By" required id="input_reportedBy"/>
                     </div>
                 </div>
                 <div class="new__incident-modal-form-group">
                     <div class="new__incident-modal-input-group">
-                        <label>Location/Dept.</label>
+                        <label>Department</label>
                         <InputSelect @bind-Value="IncidentModel.Location" disabled="@string.IsNullOrEmpty(IncidentModel.Reported_By)" required>
-                            <option value="">--Select a location--</option>
+                            <option value="">--Select your department--</option>
                             @foreach (var locationGroup in IncidentFormDictionary.LocationDepartments.Keys)
                             {
                                 <option disabled style="background-color: #e5e4e2; color: darkblue">@locationGroup</option>
@@ -42,7 +42,7 @@
                         </InputSelect>
                     </div>
                     <div class="new__incident-modal-input-group">
-                        <label>Department Head</label>
+                        <label>Department Head/Assigned</label>
                         <InputSelect @bind-Value="IncidentModel.Department_Head" disabled="@string.IsNullOrEmpty(IncidentModel.Location)" required>
                             @foreach (var incident in GetDepartmentHeadForLocationDepartment(IncidentModel.Location))
                             {
@@ -58,8 +58,13 @@
                         </div>
                         <InputSelect @bind-Value="IncidentModel.Category" disabled="@(string.IsNullOrEmpty(IncidentModel.Department_Head) || !string.IsNullOrEmpty(IncidentModel.Incident_Name))" required>
                             <option value="">--Select a category--</option>
-                            <option value="Service Disruption">Service Disruption</option>
-                            <option value="Category 2">Category 2</option>
+                            <option disabled>IT</option>
+                            <option value="Hardware Issues">Hardware Issues</option>
+                            <option value="Network & Connectivity Issues">Network & Connectivity Issues</option>
+                            <option value="User Account & Access Issues">User Account & Access Issues</option>
+                            <option value="End-User Requests & Assistance">End-User Requests & Assistance</option>
+                            <option disabled>LOGISTIC</option>
+                            <option value="Transportation/Equipment Management">Transportation/Equipment Management</option>
                             <option value="Others">Others</option>
                         </InputSelect>
                     </div>
@@ -87,18 +92,7 @@
                         @if (IncidentModel.Category == "Others")
                         {
                             <InputSelect @bind-Value="IncidentModel.Priority" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
-                                @if (!IsAdmin)
-                                {
-                                    <option></option>
                                     <option value="Others">Others</option>
-                                }else
-                                {
-                                    <option></option>
-                                    <option value="Others">Others</option>
-                                    <option value="Routine">Routine</option>
-                                    <option value="Important">Important</option>
-                                    <option value="Urgent">Urgent</option>
-                                }
                             </InputSelect>
                         }
                         else
@@ -137,8 +131,6 @@
     </div>
 </div>
 
-
-
 @code {
     [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
     [Parameter] public string Incident_ID { get; set; }
@@ -148,16 +140,30 @@
     public Incidents_TBL IncidentModel { get; set; } = new();
     private Incidents_TBL ReturnIncident = new();
 
-    private HubConnection? hubConnection;
-
     private bool IsAdmin { get; set; }
+    private int currentUserId;
     private bool IsCategoryDisabled => string.IsNullOrEmpty(IncidentModel.Incident_Name);
 
 
     protected override async Task OnInitializedAsync()
     {
-        await userAuth();
-        await LoadIncidentHubNew();
+        await UserAuthentication();
+    }
+
+    private async Task FocusInputField()
+    {
+        if (isIncidentModalFormVisible && string.IsNullOrEmpty(IncidentModel.Reported_By))
+        {
+            await JS.InvokeVoidAsync("focusInput", "input_reportedBy");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || isIncidentModalFormVisible)
+        {
+            await FocusInputField();
+        }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -167,6 +173,7 @@
             if (int.TryParse(Incident_ID, out var parsedID))
             {
                 IncidentModel = await IncidentService.GetIncidentByIdAsync(parsedID);
+                await FocusInputField();
             }
             else
             {
@@ -181,53 +188,22 @@
         }
     }
 
-
-    public async Task LoadIncidentHubNew()
-    {
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/incidentHub"))
-            .ConfigureLogging(logging =>
-            {
-                logging.SetMinimumLevel(LogLevel.Information);
-            })
-            .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30) })  
-            .Build();
-        hubConnection.On<object>("NewIncident", async (newIncident) =>
-        {
-            await InvokeAsync(() =>
-            {
-                OnSave.InvokeAsync(null);
-                Console.WriteLine($"New Incident received via SignalR: {newIncident}");
-                StateHasChanged();
-            });
-        });
-        try
-        {
-            await hubConnection.StartAsync();
-            await JS.InvokeVoidAsync("console.log", "SignalR connection established.");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"SignalR connection failed: {ex.Message}");
-        }
-        hubConnection.Reconnecting += (exception) =>
-        {
-            Console.WriteLine("Reconnecting to SignalR...");
-            return Task.CompletedTask;
-        };
-        hubConnection.Closed += async (exception) =>
-        {
-            Console.Error.WriteLine("SignalR connection closed. Attempting to reconnect...");
-            await Task.Delay(5000); 
-            await LoadIncidentHubNew();  
-        };
-    }
-
-    private async Task userAuth()
+    private async Task UserAuthentication()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
         IsAdmin = user.IsInRole("Admin");
+        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null)
+        {
+            currentUserId = int.Parse(userIdClaim.Value);
+            Console.WriteLine($"User ID from Claim: {currentUserId}");
+        }
+        else
+        {
+            currentUserId = 0; 
+            Console.WriteLine("No User ID Found, Defaulting to 0");
+        }
     }
 
     private List<string> GetDepartmentHeadForLocationDepartment(string departmentHead)
@@ -256,7 +232,6 @@
         }
     }
 
-
     private List<string> GetIncidentNamesForCategory(string category)
     {
         try
@@ -270,8 +245,6 @@
             return new List<string>();
         }
     }
-
-
 
     private List<string> GetPriorityForIncidentName(string incidentName)
     {
@@ -338,23 +311,164 @@
         await OnClose.InvokeAsync(null);
     }
 
+    private void OnDepartmentChanged(ChangeEventArgs e)
+    {
+        string selectedDepartment = e.Value.ToString();
+
+        IncidentModel.User_ID = GetUserID(selectedDepartment);
+    }
+
+    private int GetUserID(string department)
+    {
+        foreach (var locationGroup in IncidentFormDictionary.departmentUserMap)
+        {
+            if (locationGroup.Value.ContainsKey(department))
+            {
+                return locationGroup.Value[department];
+            }
+        }
+        return 0; 
+    }
+
     private async Task HandleSave()
     {
+        if (string.IsNullOrEmpty(IncidentModel.Priority))
+        {
+            if (IncidentModel.Category == "Others")
+            {
+                IncidentModel.Priority = "Others";
+            }
+            else
+            {
+                IncidentModel.Priority = "Routine";
+            }
+        }
+
         if (IncidentModel.Incident_ID == 0)
         {
-           ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
-        }
-        if (hubConnection != null)
-        {
-            await hubConnection.SendAsync("AddNewIncident", IncidentModel);
-        }
-        else
-        {
-            Console.Error.WriteLine("Failed to add new incident. SignalR connection is not established.");
+            string selectedLocation = null;
+            foreach (var location in IncidentFormDictionary.LocationDepartments.Keys)
+            {
+                if (IncidentFormDictionary.LocationDepartments[location].Contains(IncidentModel.Location))
+                {
+                    selectedLocation = location;
+                    break;
+                }
+            }
+            if (selectedLocation != null)
+            {
+                if (IncidentFormDictionary.departmentUserMap.ContainsKey(selectedLocation))
+                {
+                    var departmentUserMap = IncidentFormDictionary.departmentUserMap[selectedLocation];
+                    if (departmentUserMap.ContainsKey(IncidentModel.Location))
+                    {
+                        IncidentModel.User_ID = departmentUserMap[IncidentModel.Location];
+                    }
+                    else
+                    {
+                        IncidentModel.User_ID = 0;
+                    }
+                }
+                else
+                {
+                    IncidentModel.User_ID = 0; 
+                }
+            }
+            else
+            {
+                IncidentModel.User_ID = 0; 
+            }
+            if (IncidentFormDictionary.IncidentNameUserMap.ContainsKey(IncidentModel.Incident_Name))
+            {
+                IncidentModel.Resolver_ID = IncidentFormDictionary.IncidentNameUserMap[IncidentModel.Incident_Name];
+            }
+            else
+            {
+                IncidentModel.Resolver_ID = 0; 
+            }
+            ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
         }
         await OnSave.InvokeAsync(null);
         CloseModal();
     }
+
+    // private async Task HandleSave()
+    // {
+    //     if (string.IsNullOrEmpty(IncidentModel.Priority))
+    //     {
+    //         if (IncidentModel.Category == "Others")
+    //         {
+    //             IncidentModel.Priority = "Others";
+    //         }
+    //         else
+    //         {
+    //             IncidentModel.Priority = "Routine";
+    //         }
+    //     }
+
+    //     if (IncidentModel.Incident_ID == 0)
+    //     {
+    //         string selectedLocation = null;
+
+    //         foreach (var location in IncidentFormDictionary.LocationDepartments.Keys)
+    //         {
+    //             if (IncidentFormDictionary.LocationDepartments[location].Contains(IncidentModel.Location))
+    //             {
+    //                 selectedLocation = location;  
+    //                 break;
+    //             }
+    //         }
+    //         if (selectedLocation != null)
+    //         {
+    //             if (IncidentFormDictionary.departmentUserMap.ContainsKey(selectedLocation))
+    //             {
+    //                 var departmentUserMap = IncidentFormDictionary.departmentUserMap[selectedLocation];
+    //                 if (departmentUserMap.ContainsKey(IncidentModel.Location))
+    //                 {
+    //                     IncidentModel.User_ID = departmentUserMap[IncidentModel.Location];
+    //                 }
+    //                 else
+    //                 {
+    //                     IncidentModel.User_ID = 0; 
+    //                 }
+    //             }
+    //             else
+    //             {
+    //                 IncidentModel.User_ID = 0; 
+    //             }
+    //         }
+    //         else
+    //         {
+    //             IncidentModel.User_ID = 0; 
+    //         }
+    //         ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
+    //     }
+    //     await OnSave.InvokeAsync(null);
+    //     CloseModal();
+    // }
+
+    // private async Task HandleSave()
+    // {
+    //     if (string.IsNullOrEmpty(IncidentModel.Priority))
+    //     {
+    //         if (IncidentModel.Category == "Others")
+    //         {
+    //             IncidentModel.Priority = "Others";  
+    //         }
+    //         else
+    //         {
+    //             IncidentModel.Priority = "Routine"; 
+    //         }
+    //     }
+
+    //     if (IncidentModel.Incident_ID == 0)
+    //     {
+    //         ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
+    //     }
+    //     await OnSave.InvokeAsync(null);
+    //     CloseModal();
+    // }
+   
 }
 
 

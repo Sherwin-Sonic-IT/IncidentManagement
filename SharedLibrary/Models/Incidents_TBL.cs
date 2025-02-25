@@ -10,6 +10,8 @@ namespace SharedLibrary.Models
         [Key]
         public int Incident_ID { get; set; }
         [Required]
+        public int User_ID { get; set; }
+        public int Resolver_ID { get; set; }
         public string Incident_Name { get; set; }
         [Required]
         public string Category { get; set; }

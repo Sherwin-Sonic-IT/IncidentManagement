@@ -1,51 +1,141 @@
-﻿@rendermode @(new InteractiveAutoRenderMode(false))
-
-
+﻿
 <div class="comment__notification">
     <FluentDialog @ref="dialog" Modal="@_modal" @ondialogdismiss="OnDismiss" Class="@(isCommentNotificationVisible ? "show__comment-notification" : "hide__comment-notification")">
-        @if(displayCount > 0)
+        <label class="comment__notification-title">Comments (@unreadCommentsCount) <span><i class="bi bi-gear-fill"></i></span></label>
+
+        @if (groupedComments.Any())
         {
-            @foreach (var comment in comments.Take(displayCount))
+            @foreach (var group in groupedComments.Take(displayCount))
             {
-                <div class="comment__notification-details" @onclick="() => NavigateToIncidentDetails(comment.Incident_ID)">
-                    <i class="bi bi-chat-left-text-fill"></i>
-                    <div class="comment__notification-detail-content">
-                        <span>Comment</span> <i class="bi bi-dot"></i> <span>1min</span>
-                        <p class="comment__notification-from-user"><strong>New comment from: @comment.Username</strong></p>
-                        <label class="comment__notification-message">
-                            @(comment.Comment.Length > 50 ? comment.Comment.Substring(0, 30) + "..." : comment.Comment)
-                        </label>
+                <div class="comment__notification-incident-group">
+                    <label class="comment__notification-incident-title">Incident @group.Key</label>
+                    <label class="comment__notification-unread-count">
+                       (@((group.Count() == 1) ? "1 comment" : $"{group.Count()} comments"))
+                    </label>
+                    <div class="comment__notification-group-comments">
+                        <div class="comment__notification-content" @onclick="() => NavigateToIncidentDetails(group.Key)">
+                            <img src="\assets\requesterphoto\person.jpg" class="comment__notification-user-profile" />
+                            <div class="comment__notification-details">
+                                <label class="comment__notification-from-user"><strong>@group.First().Username</strong></label>
+                                <label class="comment__notification-message">
+                                    @(group.First().Comment.Length > 60 ? group.First().Comment.Substring(0, 60) + "..." : group.First().Comment)
+                                </label>
+                                @if (group.Count() > 1)
+                                {
+                                    <div class="comment__notification-more-comments">
+                                        <label>+ @((group.Count() - 1)) more</label>
+                                    </div>
+                                }
+                            </div>
+                            <label class="comment__notification-datetime">
+                                @group.First().CreatedAt.ToString("h:mm tt")
+                            </label>
+                        </div>
+                       
                     </div>
-                    <img src="\assets\requesterphoto\person.jpg" />
                 </div>
             }
         }
         else
         {
-            <p>No new notification today.</p>
+            <div class="comment__notification-no-comment">
+                <img src="\assets\comment\no-notification.png" />
+                <p>No new notification yet.</p>
+            </div>
         }
 
-        @if (displayCount < comments.Count)
+        @if (groupedComments.Count() > displayCount)
         {
-            <button class="notification__view-more" @onclick="ShowMoreComments">View More</button>
+            <button class="comment__notification-view-more" @onclick="ShowMoreComments">View More</button>
         }
     </FluentDialog>
 </div>
 
-
-
 @code {
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
     [Parameter] public bool isCommentNotificationVisible { get; set; }
     [Parameter] public EventCallback<bool> isCommentNotificationVisibleChanged { get; set; }
-    private FluentDialog? dialog;
-    private bool _modal = true;
+    [Parameter] public EventCallback<int> UnreadCommentsMarkAsReadCountChanged { get; set; }
+
+    private string userRole;
+    private bool IsAdmin;
+    private int currentUserId;
+    private string currentUserName;
+    private string adminUsername = "Glenne";
+
     private List<Board_TBL> comments = new List<Board_TBL>();
 
+    private List<IGrouping<int, Board_TBL>> groupedComments => comments
+        .GroupBy(c => c.Incident_ID)  
+        .ToList();
+
+    private FluentDialog? dialog;
+    private bool _modal = true;
+
     private int displayCount = 5;
+    private int unreadCommentsCount => groupedComments.Sum(group => group.Count());
+
+    private Timer _timer;
+    private const int RefreshInterval = 20000;
 
     protected override async Task OnInitializedAsync()
     {
-        comments = await BoardService.GetAllCommentsAsync();
+        await UserAuthentication();
+        await LoadUnreadCommentsAsync();
+        await StartTimer();
+    }
+
+    private async Task UserAuthentication()
+    {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null)
+        {
+            currentUserId = int.Parse(userIdClaim.Value);
+        }
+        else
+        {
+            currentUserId = 0;
+        }
+        currentUserName = user.Identity!.Name!;
+        IsAdmin = currentUserName == adminUsername;
+    }
+
+    private async Task LoadUnreadCommentsAsync()
+    {
+        var today = DateTime.Today;
+        comments = await BoardService.GetCommentsByDateAndStatusAsync(today, "unread");
+
+        if (IsAdmin)
+        {
+            comments = comments.Where(comment => comment.User_ID != currentUserId).ToList();
+        }
+        else
+        {
+            comments = comments.Where(comment =>
+             comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId)
+             .ToList();
+        }
+        StateHasChanged();
+    }
+
+    private async Task StartTimer()
+    {
+        _timer = new Timer(RefreshInterval);
+        _timer.Elapsed += async (sender, e) => await InvokeAsync(() => LoadUnreadCommentsAsync());
+        _timer.Start();
+    }
+
+    private async Task StopTimer()
+    {
+        if (_timer != null)
+        {
+            _timer.Stop();
+            _timer.Dispose();
+        }
     }
 
     protected override void OnParametersSet()
@@ -74,12 +164,28 @@
         displayCount += 5;
     }
 
+    private async Task MarkCommentAsRead(string username, int incidentId)
+    {
+        var commentsFromUser = comments.Where(c => c.Username == username && c.Status == "unread").ToList();
+
+        foreach (var comment in commentsFromUser)
+        {
+            var updatedComment = await BoardService.MarkCommentAsReadAsync(comment.Comment_ID);
+
+            if (updatedComment != null)
+            {
+                comment.Status = "read";
+            }
+        }
+        await LoadUnreadCommentsAsync();
+        await UnreadCommentsMarkAsReadCountChanged.InvokeAsync(unreadCommentsCount);
+        NavigateToIncidentDetails(incidentId);
+    }
+
     private void NavigateToIncidentDetails(int incidentId)
     {
         isCommentNotificationVisibleChanged.InvokeAsync(false);
         NavigationManager.NavigateTo($"/view-incident-details/{incidentId}");
     }
-
-
 }
 

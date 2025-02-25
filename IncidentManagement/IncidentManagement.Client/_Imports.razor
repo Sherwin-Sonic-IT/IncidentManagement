@@ -19,8 +19,9 @@
 @using IncidentManagement.Client.Components.Notification
 @using Microsoft.AspNetCore.SignalR.Client
 @using IncidentManagement.Client.Layout
-@using Microsoft.AspNetCore.SignalR.Client
 @using System.Drawing
+@using System.Timers;
+@using IncidentManagement.Client.Components.Toast
 
 
 @inject NavigationManager NavigationManager
@@ -28,3 +29,5 @@
 @inject IBoard BoardService
 @inject IJSRuntime JS
 @inject IncidentFormDictionary IncidentFormDictionary
+
+

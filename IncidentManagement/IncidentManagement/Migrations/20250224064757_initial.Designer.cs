@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IncidentManagement.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250211014236_initial")]
+    [Migration("20250224064757_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -47,6 +47,16 @@ namespace IncidentManagement.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("ParentCommentID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Resolver_ID")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("User_ID")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")
@@ -96,6 +106,9 @@ namespace IncidentManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Resolver_ID")
+                        .HasColumnType("int");
+
                     b.Property<string>("Resolver_Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -104,6 +117,9 @@ namespace IncidentManagement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("Pending");
+
+                    b.Property<int>("User_ID")
+                        .HasColumnType("int");
 
                     b.HasKey("Incident_ID");
 

@@ -1,70 +1,71 @@
 ﻿@rendermode @(new InteractiveAutoRenderMode(false))
 
-<div class="navbar">
-    <p class="navbar__logo">Incident Management (IM)</p>
-    <div class="navbar__right__section">
-     @*
-        <div class="navbar__search">
-        <input type="search" class="navbar__search-input" placeholder="Search . . ." />
-        <i class="bi bi-search navbar__search-icon"></i>
-        </div>
-     *@
-        <FluentButton Appearance=Appearance.Accent>
-            <i class="bi bi-bell-fill navbar__notification-icon">
+@if (currentUserName != "Guest")
+{
+    <div class="navbar">
+        <p class="navbar__logo">Incident Management (IM)</p>
+        <div class="navbar__right__section">
+            <FluentButton Appearance=Appearance.Accent>
+                <i class="bi bi-bell-fill navbar__notification-icon">
                     @if (newIncidentCount > 0)
                     {
-                   <span class="navbar__notification-count">@newIncidentCount</span>
+                        <span class="navbar__notification-count">@newIncidentCount</span>
                     }
-            </i>
-        </FluentButton>
-        <FluentButton Appearance=Appearance.Accent Style="margin: 0 1rem;">
-            <i class="bi bi-chat-square-dots-fill navbar__message-icon">
-                @if (newCommentCount > 0)
-                {
-                    <span class="navbar__notification-count">@newCommentCount</span>
-                }
-            </i>
-        </FluentButton>
-        <div class="navbar__user__account">
-            <FluentStack HorizontalAlignment="@HorizontalAlignment.End"
-                         VerticalAlignment="@VerticalAlignment.Center"
-                         Style="height: 50px;">
-                <FluentProfileMenu Image="\assets\adminphoto\person.jpg"
-                                   Status="@PresenceStatus.Available"
-                                   HeaderLabel="@userRole"
-                                   Initials="BG"
-                                   FullName="@userName"
-                                   EMail="sonicsalesdistribution.com"
-                                   PopoverStyle="min-width: 330px;" />
-            </FluentStack>
+                </i>
+            </FluentButton>
+            <FluentButton Appearance=Appearance.Accent Style="margin: 0 1rem;" @onclick="ToggleCommentNotification">
+                <i class="bi bi-chat-square-dots-fill navbar__message-icon">
+                    @if (unreadCommentsCount > 0)
+                    {
+                        <span class="navbar__notification-count">@unreadCommentsCount</span>
+                    }
+                </i>
+            </FluentButton>
+            <div class="navbar__user__account">
+                <FluentStack HorizontalAlignment="@HorizontalAlignment.End"
+                             VerticalAlignment="@VerticalAlignment.Center"
+                             Style="height: 50px;">
+                    <FluentProfileMenu Image="\assets\adminphoto\person.jpg"
+                                       Status="@PresenceStatus.Available"
+                                       HeaderLabel="@userRole"
+                                       Initials="BG"
+                                       FullName="@currentUserName"
+                                       EMail="sonicsalesdistribution.com"
+                                       PopoverStyle="min-width: 330px;"
+                                       OnHeaderButtonClick="Logout" />
+                </FluentStack>
+            </div>
+            <Notification isNotificationVisible="isNotificationVisible" IsNotificationVisibleChanged="OnNotificationVisibilityChanged" />
+
+            <Comment isCommentNotificationVisible="isCommentNotificationVisible" isCommentNotificationVisibleChanged="OnCommentNotificationVisibilityChanged"
+                     UnreadCommentsMarkAsReadCountChanged="OnUnreadCommentsMarkAsReadCountChanged" />
         </div>
-        <Notification isNotificationVisible="isNotificationVisible" IsNotificationVisibleChanged="OnNotificationVisibilityChanged" />
-
-        <Comment isCommentNotificationVisible="isCommentNotificationVisible" isCommentNotificationVisibleChanged="OnCommentNotificationVisibilityChanged" />
     </div>
-</div>
-
+}
 
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
-    private List<Incidents_TBL> Incidents { get; set; } = new();
-    private List<Board_TBL> Board { get; set; } = new();
-    private string userName;
-    private string userRole;
+    private List<Board_TBL> comments = new List<Board_TBL>();
+    private int unreadCommentsCount;
+    private Timer _timer;
+    private const int RefreshInterval = 25000;
     private int newIncidentCount;
-    private int newCommentCount;
+
+    private string userRole;
+    private bool IsAdmin;
+    private int currentUserId;
+    private string currentUserName;
+    private string adminUsername = "Glenne";
 
     private bool isNotificationVisible = false;
     private bool isCommentNotificationVisible = false;
 
-
     protected override async Task OnInitializedAsync()
     {
-        await Auth();
-        await getAllIncident();
-        getNewIncidentCount();
-        await getNewCommentCount();
+        await UserAuthentication();
+        await LoadUnreadCommentsAsync();
+        await StartTimer();
     }
 
     private void ToggleNotifications()
@@ -79,8 +80,8 @@
 
     private async Task OnNotificationVisibilityChanged(bool isVisible)
     {
-        isNotificationVisible = isVisible; 
-        StateHasChanged();  
+        isNotificationVisible = isVisible;
+        StateHasChanged();
     }
 
     private async Task OnCommentNotificationVisibilityChanged(bool isVisible)
@@ -89,42 +90,74 @@
         StateHasChanged();
     }
 
-    private async Task Auth()
+
+    private async Task UserAuthentication()
     {
         var authState = await AuthenticationStateTask;
         var user = authState.User;
-        userName = user.Identity?.Name ?? "Guest";
+        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
 
+        if (userIdClaim != null)
+        {
+            currentUserId = int.Parse(userIdClaim.Value);
+        }
+        else
+        {
+            currentUserId = 0;
+        }
+
+        currentUserName = user.Identity!.Name!;
+        IsAdmin = currentUserName == adminUsername;
         var roleClaim = user?.FindFirst(ClaimTypes.Role);
         userRole = roleClaim?.Value ?? "No role assigned";
     }
 
-    private async Task getAllIncident()
+    private async Task LoadUnreadCommentsAsync()
     {
-        var incidents = await IncidentService.GetAllIncidentsAsync();
-
-        if (incidents != null)
+        var today = DateTime.Today;
+        comments = await BoardService.GetCommentsByDateAndStatusAsync(today, "unread");
+        if (IsAdmin)
         {
-            Incidents.Clear();
-            Incidents.AddRange(incidents);
+            comments = comments.Where(comment => comment.Username != currentUserName).ToList();
+            unreadCommentsCount = comments.Count();
         }
-    }
-
-    private void getNewIncidentCount()
-    {
-        newIncidentCount = Incidents.Count(i => i.Date_Reported.Date == DateTime.Today.Date && i.Status == "Pending");
-    }
-
-    private async Task getNewCommentCount()
-    {
-        Board.Clear();
-        foreach (var incident in Incidents)
+        else
         {
-            var comments = await BoardService.GetCommentsByIncidentIdAsync(incident.Incident_ID);
-            Board.AddRange(comments);
+          comments = comments.Where(comment =>
+          comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId)
+          .ToList();
+            unreadCommentsCount = comments.Count();
         }
-        newCommentCount = Board.Count(b => b.CreatedAt.Date == DateTime.Today.Date);
+        Console.WriteLine($"Filtered Comments Count: {comments.Count}");
         StateHasChanged();
+    }
+
+    private async Task StartTimer()
+    {
+        _timer = new Timer(RefreshInterval);
+        _timer.Elapsed += async (sender, e) => await InvokeAsync(() => LoadUnreadCommentsAsync());
+        _timer.Start();
+    }
+
+    private async Task StopTimer()
+    {
+        if (_timer != null)
+        {
+            _timer.Stop();
+            _timer.Dispose();
+        }
+    }
+
+    private async Task OnUnreadCommentsMarkAsReadCountChanged(int newUnreadCount)
+    {
+        unreadCommentsCount = newUnreadCount;
+        StateHasChanged();  
+
+    }
+
+    private async Task Logout()
+    {
+            NavigationManager.NavigateTo("/Logout");
     }
 
 

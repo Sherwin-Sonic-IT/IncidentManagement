@@ -27,6 +27,29 @@ namespace IncidentManagement.Client.Services
             return comments!;
         }
 
+        public async Task<List<Board_TBL>> GetCommentsByDateAndStatusAsync(DateTime date, string status)
+        {
+            var formattedDate = date.ToString("yyyy-MM-dd");
+            var response = await _httpClient.GetAsync($"api/Comment/today/unread?date={formattedDate}&status={status}");
+            var comments = await response.Content.ReadFromJsonAsync<List<Board_TBL>>();
+            return comments!;
+        }
+
+        public async Task<Board_TBL> MarkCommentAsReadAsync(int commentId)
+        {
+            var response = await _httpClient.PutAsJsonAsync($"api/Comment/{commentId}/mark-read", new { });
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Failed to mark comment as read. Status: {response.StatusCode}");
+                return null;
+            }
+
+            var updatedComment = await response.Content.ReadFromJsonAsync<Board_TBL>();
+            return updatedComment!;
+        }
+
+
         public async Task<Board_TBL> AddCommentAsync(Board_TBL comment)
         {
             Console.WriteLine($"Sending comment: {comment.Comment}");

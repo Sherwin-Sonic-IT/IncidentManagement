@@ -1,0 +1,75 @@
+﻿.toaster__cta {
+    gap: 0.5rem;
+    position: fixed;
+    bottom: 40px;
+    left: 2.5px;
+    width: 260px;
+    padding: 0.5rem;
+    border-radius: 5px;
+    background-color: var(--color-white);
+    z-index: 20000;
+}
+
+.show__success-toast {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center;
+}
+
+.hide__success-toast {
+    display: none !important;
+}
+
+.toaster__cta .bi-check2-all {
+    font-size: 1.5rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    color: var(--color-white);
+    background-color: #007f66; 
+}
+
+.toaster__cta .bi-plus-circle-fill {
+    font-size: 1.5rem;
+    color: var(--color-white);
+    background-color: #28a745; 
+    padding: 0.25rem;
+    border-radius: 5px;
+}
+
+.toaster__cta .bi-pencil-square {
+    font-size: 1.5rem;
+    color: var(--color-white);
+    background-color: #ffc107;
+    padding: 0.25rem;
+    border-radius: 5px;
+}
+
+.toaster__cta .bi-trash3-fill {
+    font-size: 1.5rem;
+    color: var(--color-white);
+    background-color: #dc3545; 
+    padding: 0.25rem;
+    border-radius: 5px;
+}
+
+.toaster__cta .bi-x-lg {
+    cursor: pointer;
+}
+
+.toaster__cta-title {
+    flex: 1;
+    font-weight: 600;
+    margin-bottom: -1px;
+}
+
+.toast-add {
+    box-shadow: rgba(0, 127, 102, 0.4) 0px 5px, rgba(0, 127, 102, 0.15) 0px 10px, rgba(0, 127, 102, 0.1) 0px 15px, rgba(0, 127, 102, 0.05) 0px 20px, rgba(0, 127, 102, 0.025) 0px 25px;
+}
+
+.toast-update {
+    box-shadow: rgba(255, 193, 7, 0.4) 0px 5px, rgba(255, 193, 7, 0.15) 0px 10px, rgba(255, 193, 7, 0.1) 0px 15px, rgba(255, 193, 7, 0.05) 0px 20px, rgba(255, 193, 7, 0.025) 0px 25px;
+}
+
+.toast-delete {
+    box-shadow: rgba(220, 53, 69, 0.4) 0px 5px, rgba(220, 53, 69, 0.15) 0px 10px, rgba(220, 53, 69, 0.1) 0px 15px, rgba(220, 53, 69, 0.05) 0px 20px, rgba(220, 53, 69, 0.025) 0px 25px;
+}

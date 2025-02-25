@@ -441,7 +441,8 @@
     color: var(--color-payneGray);
 }
 .dashboard__incident__recent__incidents-date {
-    padding: 0.15rem 0.5rem;
+    padding: 0.15rem 1rem;
+    border-radius: 12px;
     color: var(--color-darkmidnightblue);
     background-color: var(--color-whitesmoke);
 }

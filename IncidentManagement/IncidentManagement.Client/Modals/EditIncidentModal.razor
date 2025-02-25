@@ -1,5 +1,4 @@
-﻿@*@rendermode InteractiveAuto*@
-@rendermode @(new InteractiveAutoRenderMode(false))
+﻿@rendermode @(new InteractiveAutoRenderMode(false))
 
 <div class="edit__incident-modal-overlay @(isEditIncidentModalFormVisible ? "show__edit__incident-modal" : "hide__edit__incident-modal")">
     <div class="edit__incident-modal">
@@ -13,7 +12,7 @@
 
         <EditForm Model="IncidentModel" OnValidSubmit="handleUpdate" FormName="EditIncident">
             <DataAnnotationsValidator />
-            @* <ValidationSummary />*@
+           @* <ValidationSummary />*@
             <div class="edit__incident-modal-body">
                 <div class="edit__incident-modal-form-group">
                     <div class="edit__incident-modal-input-group">
@@ -22,15 +21,15 @@
                                    max=@DateTime.Today.ToString("yyyy'-'MM'-'dd") />
                     </div>
                     <div class="edit__incident-modal-input-group">
-                        <label>Requested By</label>
+                        <label>End-User/Affected User</label>
                         <InputText @bind-Value="IncidentModel.Reported_By" />
                     </div>
                 </div>
                 <div class="edit__incident-modal-form-group">
                     <div class="edit__incident-modal-input-group">
-                        <label>Location/Dept.</label>
+                        <label>Department</label>
                         <InputSelect @bind-Value="IncidentModel.Location" disabled="@string.IsNullOrEmpty(IncidentModel.Reported_By)" required>
-                            <option value="">--Select a location--</option>
+                            <option value="">--Select your department--</option>
                             @foreach (var locationGroup in IncidentFormDictionary.LocationDepartments.Keys)
                             {
                                 <option disabled style="background-color: #e5e4e2; color: darkblue">@locationGroup</option>
@@ -42,7 +41,7 @@
                         </InputSelect>
                     </div>
                     <div class="edit__incident-modal-input-group">
-                        <label>Department Head</label>
+                        <label>Department Head/Assigned</label>
                         <InputSelect @bind-Value="IncidentModel.Department_Head" disabled="@string.IsNullOrEmpty(IncidentModel.Location)" required>
                             @foreach (var incident in GetDepartmentHeadForLocationDepartment(IncidentModel.Location))
                             {
@@ -58,8 +57,11 @@
                         </div>
                         <InputSelect @bind-Value="IncidentModel.Category" disabled="@(string.IsNullOrEmpty(IncidentModel.Department_Head) || !string.IsNullOrEmpty(IncidentModel.Incident_Name))">
                             <option value="">--Select a category--</option>
-                            <option value="Service Disruption">Service Disruption</option>
-                            <option value="Category 2">Category 2</option>
+                            <option value="Hardware Issues">Hardware Issues</option>
+                            <option value="Network & Connectivity Issues">Network & Connectivity Issues</option>
+                            <option value="User Account & Access Issues">User Account & Access Issues</option>
+                            <option value="End-User Requests & Assistance">End-User Requests & Assistance</option>
+                            <option value="Transportation/Equipment Management">Transportation/Equipment Management</option>
                             <option value="Others">Others</option>
                         </InputSelect>
                     </div>
@@ -86,19 +88,23 @@
                         <label>Priority</label>
                         @if (IncidentModel.Category == "Others")
                         {
+                            @*
+                        <InputSelect @bind-Value="IncidentModel.Priority" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
+                        @if (!IsAdmin)
+                        {
+                        <option value="Others">Others</option>
+                        }
+                        else
+                        {
+                        <option value="Others">Others</option>
+                        <option value="Routine">Routine</option>
+                        <option value="Importance">Importance</option>
+                        <option value="Urgent">Urgent</option>
+                        }
+                        </InputSelect>
+                            *@
                             <InputSelect @bind-Value="IncidentModel.Priority" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
-                                @if (!IsAdmin)
-                                {
-                                    <option></option>
                                     <option value="Others">Others</option>
-                                }
-                                else
-                                {
-                                    <option value="Others">Others</option>
-                                    <option value="Routine">Routine</option>
-                                    <option value="Importance">Importance</option>
-                                    <option value="Urgent">Urgent</option>
-                                }
                             </InputSelect>
                         }
                         else
@@ -123,6 +129,11 @@
                                 @foreach (var incident in GetResolverForIncidentName(IncidentModel.Incident_Name))
                                 {
                                     <option value="@incident">@incident</option>
+                                    <option value="Junix Chan">Junix Chan</option>
+                                    <option value="Froilan">Froilan</option>
+                                    <option value="Emman">Emman</option>
+                                    <option value="Sherwin">Sherwin</option>
+                                    <option value="Mae">Mae</option>                                        
                                 }
                             </InputSelect>
                         }
@@ -159,7 +170,8 @@
     [Parameter] public EventCallback OnUpdate { get; set; }
     [Parameter] public Incidents_TBL IncidentModel { get; set; } = new Incidents_TBL();
     private Incidents_TBL ReturnIncident = new();
-    private HubConnection? hubConnection;
+
+    // private HubConnection? hubConnection;
 
     private bool IsAdmin { get; set; } 
     private bool IsCategoryDisabled => string.IsNullOrEmpty(IncidentModel.Incident_Name);
@@ -168,7 +180,7 @@
     protected override async Task OnInitializedAsync()
     {
         await userAuth();
-        await LoadIncidentHubEdit();
+        // await LoadIncidentHubEdit();
     }
 
     private async Task userAuth()
@@ -201,46 +213,46 @@
         }
     }
 
-    public async Task LoadIncidentHubEdit()
-    {
-        hubConnection = new HubConnectionBuilder()
-            .WithUrl(NavigationManager.ToAbsoluteUri("/incidentHub"))
-            .ConfigureLogging(logging =>
-            {
-                logging.SetMinimumLevel(LogLevel.Information); 
-            })
-            .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30) })  
-            .Build();
-        hubConnection.On<object>("UpdateIncident", async (incidentToUpdate) =>
-        {
-            await InvokeAsync(() =>
-            {
-                OnUpdate.InvokeAsync(null);
-                Console.WriteLine($"Updated Incident with SignalR: {incidentToUpdate}");
-                StateHasChanged();
-            });
-        });
-        try
-        {
-            await hubConnection.StartAsync();
-            await JS.InvokeVoidAsync("console.log", "SignalR connection established.");
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"SignalR connection failed: {ex.Message}");
-        }
-        hubConnection.Reconnecting += (exception) =>
-        {
-            Console.WriteLine("Reconnecting to SignalR...");
-            return Task.CompletedTask;
-        };
-        hubConnection.Closed += async (exception) =>
-        {
-            Console.Error.WriteLine("SignalR connection closed. Attempting to reconnect...");
-            await Task.Delay(5000);  
-            await LoadIncidentHubEdit();  
-        };
-    }
+    // public async Task LoadIncidentHubEdit()
+    // {
+    //     hubConnection = new HubConnectionBuilder()
+    //         .WithUrl(NavigationManager.ToAbsoluteUri("/incidentHub"))
+    //         .ConfigureLogging(logging =>
+    //         {
+    //             logging.SetMinimumLevel(LogLevel.Information); 
+    //         })
+    //         .WithAutomaticReconnect(new[] { TimeSpan.Zero, TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(30) })  
+    //         .Build();
+    //     hubConnection.On<object>("UpdateIncident", async (incidentToUpdate) =>
+    //     {
+    //         await InvokeAsync(() =>
+    //         {
+    //             OnUpdate.InvokeAsync(null);
+    //             Console.WriteLine($"Updated Incident with SignalR: {incidentToUpdate}");
+    //             StateHasChanged();
+    //         });
+    //     });
+    //     try
+    //     {
+    //         await hubConnection.StartAsync();
+    //         await JS.InvokeVoidAsync("console.log", "SignalR connection established.");
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Console.Error.WriteLine($"SignalR connection failed: {ex.Message}");
+    //     }
+    //     hubConnection.Reconnecting += (exception) =>
+    //     {
+    //         Console.WriteLine("Reconnecting to SignalR...");
+    //         return Task.CompletedTask;
+    //     };
+    //     hubConnection.Closed += async (exception) =>
+    //     {
+    //         Console.Error.WriteLine("SignalR connection closed. Attempting to reconnect...");
+    //         await Task.Delay(5000);  
+    //         await LoadIncidentHubEdit();  
+    //     };
+    // }
 
     private List<string> GetIncidentNamesForCategory(string category)
     {
@@ -321,10 +333,10 @@
             if (IncidentFormDictionary.ResolverIncidentName.ContainsKey(incidentName))
             {
                 var resolver = IncidentFormDictionary.ResolverIncidentName[incidentName];
-                if (resolver.Any())
-                {
-                    IncidentModel.Resolver_Name = resolver.First();
-                }
+                // if (resolver.Any())
+                // {
+                //     IncidentModel.Resolver_Name = resolver.First();
+                // }
                 return resolver;
             }
             else
@@ -349,15 +361,26 @@
 
     private async Task handleUpdate ()
     {
+        if (string.IsNullOrEmpty(IncidentModel.Priority))
+        {
+            if (IncidentModel.Category == "Others")
+            {
+                IncidentModel.Priority = "Others";
+            }
+            else
+            {
+                IncidentModel.Priority = "Routine";
+            }
+        }
         ReturnIncident = await IncidentService.UpdateIncidentAsync(IncidentModel);
-        if (hubConnection != null)
-        {
-            await hubConnection.SendAsync("UpdateIncidentByID", IncidentModel);
-        }
-        else
-        {
-            Console.Error.WriteLine("Failed to edit incident. SignalR connection is not established.");
-        }
+        // if (hubConnection != null)
+        // {
+        //     await hubConnection.SendAsync("UpdateIncidentByID", IncidentModel);
+        // }
+        // else
+        // {
+        //     Console.Error.WriteLine("Failed to edit incident. SignalR connection is not established.");
+        // }
         await OnUpdate.InvokeAsync(null);
         CloseModal();
     }

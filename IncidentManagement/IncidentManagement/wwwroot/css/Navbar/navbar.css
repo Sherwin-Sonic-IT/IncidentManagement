@@ -23,7 +23,7 @@
 
 
 
- 
+
 
 .navbar__right__section {
     display: flex;
@@ -55,19 +55,22 @@
     color: var(--color-white);
     cursor: pointer;
 }
+
 .navbar__search-icon {
     color: var(--color-darkmidnightblue) !important;
 }
+
 .navbar__notification-icon {
     position: relative;
 }
+
 .navbar__notification-count {
     font-size: 0.65rem;
     border-radius: 50%;
     padding: 0.010rem 0.5rem;
     position: absolute;
     top: -7px;
-    right: -7px;
+    right: 1px;
     color: var(--color-white);
     background-color: var(--color-red);
 }
@@ -77,6 +80,7 @@
 .navbar__account {
     cursor: pointer !important;
 }
+
 .navbar__right__section .navbar__account {
     display: flex;
     justify-content: center;
@@ -84,6 +88,7 @@
     height: 50px;
     margin-left: 1rem;
 }
+
 .navbar__account-profile {
     display: flex;
     justify-content: flex-start;
@@ -93,6 +98,7 @@
     border-radius: 8px;
     background-color: var(--color-whitesmoke);
 }
+
 .navbar__account__profile-img {
     width: 50px;
     background-repeat: no-repeat;
@@ -101,14 +107,17 @@
     height: 40px;
     border-radius: 25px;
 }
+
 .navbar__account__profile-username {
     font-size: 1.15rem;
     font-weight: 600;
     color: var(--color-black);
 }
+
 .navbar__account__profile-gmail {
     color: var(--color-black);
 }
+
 .navbar__account .bi-caret-down-fill {
     margin: 0.25rem 0 0 0.25rem;
     cursor: pointer;
@@ -117,20 +126,13 @@
 .navbar .stack-vertical {
     margin-top: 1.35rem;
 }
+
 .navbar__user__account .fluent-typography:nth-last-child(3) {
     padding: 0.25rem 1rem;
     border-radius: 15px;
     background-color: var(--color-whitesmoke);
 }
+
 .navbar__user__account .fluent-typography:nth-last-child(2) {
     color: var(--color-darkmidnightblue);
 }
-
-
-
-
-
-
-
-
-

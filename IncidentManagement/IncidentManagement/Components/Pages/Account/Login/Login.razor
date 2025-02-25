@@ -6,7 +6,7 @@
 <div class="login">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" class="login__wave__svg__top"><path fill="#003366 " fill-opacity="1" d="M0,288L720,64L1440,192L1440,320L720,320L0,320Z"></path></svg>
     <div class="login__header">
-        <label class="login__header__logo">Incident Management</label>
+        <label class="login__header__logo">Sonic Incident Management (SIM)</label>
         <div class="login__header__links">
             <a href="#">About</a>
             <a href="#">Help <i class="bi bi-question-circle"></i></a>
@@ -34,7 +34,8 @@
         </div>
 
         <div class="login__form__image__container">
-            <img src="/assets/login/robot face-pana.png" class="login__form__image" />
+            @*<img src="/assets/login/robot face-pana.png" class="login__form__image" />*@
+            <img src="/assets/login/sean-pollock-phyq704ffda-unsplash.jpg" class="login__form__image" />
         </div>
 
     </div>
@@ -63,7 +64,6 @@
 
     private async Task Authenticate()
     {
-        // var userAccount = dataContext.Users_TBL.Where(x => x.Username == UserModel.Username).FirstOrDefault();
         var userAccount = dataContext.Users_TBL
         .AsEnumerable()
         .FirstOrDefault(x => x.Username == UserModel.Username);

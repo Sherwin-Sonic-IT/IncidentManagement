@@ -1,0 +1,51 @@
+﻿@rendermode @(new InteractiveAutoRenderMode(false))
+
+<div class="toaster__cta animate__animated animate__backInLeft
+    @(IsAddToastVisible || IsUpdateToastVisible || IsDeleteToastVisible ? "show__success-toast" : "hide__success-toast")
+    @(IsAddToastVisible ? "toast-add" : IsUpdateToastVisible ? "toast-update" : IsDeleteToastVisible ? "toast-delete" : "")">
+
+    @if (IsAddToastVisible)
+    {
+        <i class="bi bi-plus-circle-fill"></i>
+    }
+    else if (IsUpdateToastVisible)
+    {
+        <i class="bi bi-pencil-square"></i>
+    }
+    else if (IsDeleteToastVisible)
+    {
+        <i class="bi bi-trash3-fill"></i>
+    }
+    <p class="toaster__cta-title">@ToastMessage</p>
+    <i class="bi bi-x-lg"></i>
+</div>
+
+@code {
+    [Parameter] public bool IsAddToastVisible { get; set; }
+    [Parameter] public bool IsUpdateToastVisible { get; set; }
+    [Parameter] public bool IsDeleteToastVisible { get; set; }
+    [Parameter] public string ToastMessage { get; set; }
+    [Parameter] public EventCallback<bool> OnToastClosed { get; set; }
+
+    private bool _isToastVisible;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (IsAddToastVisible || IsUpdateToastVisible || IsDeleteToastVisible)
+        {
+            _isToastVisible = true;
+            await Task.Delay(4000);
+            DismissToast();
+        }
+    }
+
+    private void DismissToast()
+    {
+        IsAddToastVisible = false;
+        IsUpdateToastVisible = false;
+        IsDeleteToastVisible = false;
+        OnToastClosed.InvokeAsync(true);
+    }
+}
+
+

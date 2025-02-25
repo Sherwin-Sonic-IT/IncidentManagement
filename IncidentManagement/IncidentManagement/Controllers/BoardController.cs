@@ -16,7 +16,6 @@ namespace IncidentManagement.Controllers
             _commentService = commentService;
         }
 
-
         [HttpGet]
         public async Task<ActionResult<List<Board_TBL>>> GetAllComments()
         {
@@ -30,6 +29,27 @@ namespace IncidentManagement.Controllers
             var comments = await _commentService.GetCommentsByIncidentIdAsync(incidentId);
             return Ok(comments);
         }
+
+        [HttpGet("today/unread")]
+        public async Task<ActionResult<List<Board_TBL>>> GetCommentsByDateAndStatus(DateTime date, string status)
+        {
+            var comments = await _commentService.GetCommentsByDateAndStatusAsync(date, status);
+            return Ok(comments);
+        }
+
+        [HttpPut("{commentId}/mark-read")]
+        public async Task<ActionResult<Board_TBL>> MarkCommentAsRead(int commentId)
+        {
+            var updatedComment = await _commentService.MarkCommentAsReadAsync(commentId);
+
+            if (updatedComment == null)
+            {
+                return NotFound("Comment not found.");
+            }
+
+            return Ok(updatedComment);
+        }
+
 
         [HttpPost]
         public async Task<ActionResult<Board_TBL>> PostComment([FromBody] Board_TBL comment)

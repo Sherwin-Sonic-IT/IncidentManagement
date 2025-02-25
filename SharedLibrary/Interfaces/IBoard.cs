@@ -12,6 +12,10 @@ namespace SharedLibrary.Interfaces
     {
         Task<List<Board_TBL>> GetAllCommentsAsync();
         Task<List<Board_TBL>> GetCommentsByIncidentIdAsync(int incidentId);
+        Task<List<Board_TBL>> GetCommentsByDateAndStatusAsync(DateTime date, string status);
+        Task<Board_TBL> MarkCommentAsReadAsync(int commentId);
         Task<Board_TBL> AddCommentAsync(Board_TBL comment);
     }
 }
+
+
