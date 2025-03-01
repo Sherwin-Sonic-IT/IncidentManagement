@@ -1,7 +1,7 @@
 ﻿@rendermode @(new InteractiveAutoRenderMode(false))
 
-@if (currentUserName != "Guest")
-{
+<AuthorizeView Roles="Admin, User, Head">
+    <Authorized>
     <div class="navbar">
         <p class="navbar__logo">Incident Management (IM)</p>
         <div class="navbar__right__section">
@@ -41,7 +41,8 @@
                      UnreadCommentsMarkAsReadCountChanged="OnUnreadCommentsMarkAsReadCountChanged" />
         </div>
     </div>
-}
+    </Authorized>
+</AuthorizeView>
 
 @code {
     [CascadingParameter]
@@ -49,7 +50,7 @@
     private List<Board_TBL> comments = new List<Board_TBL>();
     private int unreadCommentsCount;
     private Timer _timer;
-    private const int RefreshInterval = 25000;
+    private const int RefreshInterval = 30000;
     private int newIncidentCount;
 
     private string userRole;
@@ -123,9 +124,8 @@
         }
         else
         {
-          comments = comments.Where(comment =>
-          comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId)
-          .ToList();
+           comments = comments.Where(comment =>
+                comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId).ToList();
             unreadCommentsCount = comments.Count();
         }
         Console.WriteLine($"Filtered Comments Count: {comments.Count}");

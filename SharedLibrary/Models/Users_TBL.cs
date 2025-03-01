@@ -1,5 +1,4 @@
-﻿using SharedLibrary.Interfaces;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace SharedLibrary.Models
 {
@@ -9,11 +8,9 @@ namespace SharedLibrary.Models
         public int User_ID { get; set; }
         [Required]
         public string Username { get; set; }
-        [Required]
+        public string Location { get; set; }
+        public string Department_Head {  get; set; }
         public string Password { get; set; }
         public string Role { get; set; }
-
-
-
     }
 }

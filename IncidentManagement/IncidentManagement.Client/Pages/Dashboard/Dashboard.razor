@@ -1,6 +1,6 @@
 ﻿@page "/dashboard"
 @rendermode @(new InteractiveAutoRenderMode(false))
-@attribute [Authorize(Roles = "Admin, User")]
+@attribute [Authorize(Roles = "Admin, User, Head")]
 
 
 <div class="dashboard__header">
@@ -202,9 +202,7 @@
 
         var roleClaim = user?.FindFirst(ClaimTypes.Role);
         userRole = roleClaim?.Value ?? "No role assigned";
-
         formattedDate = DateTime.Now.ToString("dddd dd MMMM yyyy");
-
         var incidents = await IncidentService.GetAllIncidentsAsync();
         Incident = incidents.ToList();
         pendingIncidentCount = Incident.Count(i => i.Status == "Pending");

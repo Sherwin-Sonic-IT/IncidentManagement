@@ -1,6 +1,7 @@
 ﻿@page "/view-incident-details/{Incident_ID:int}"
-@attribute [Authorize(Roles = "Admin, User")]
+@attribute [Authorize(Roles = "Admin, User, Head")]
 @rendermode @(new InteractiveAutoRenderMode(false))
+@implements IDisposable
 
 @if (Incident != null)
 {
@@ -21,7 +22,7 @@
                         @foreach (var (label, value) in new (string, string)[]
                        {
                     ("Incident ID", Incident.Incident_ID.ToString()),
-                    ("Requested By", Incident.Reported_By),
+                    ("End/Affected-User", Incident.Reported_By),
                     ("Location/Dept", Incident.Location),
                     ("Incident Status", Incident.Status)
                        })
@@ -78,9 +79,13 @@
                     <a href="/troubleshoot" class="view__incident__detail-support-btn">
                         <i class="bi bi-exclamation-circle"></i> Troubleshoot
                     </a>
-                    @if ((Incident.Status != "Completed" && Incident.Department_Head == currentUserName) || (IsAdmin && Incident.Status != "Completed"))
+                    @if ((Incident.Status != "Completed" && Incident.User_ID == currentUserId) ||
+                   (IsAdmin && Incident.Status != "Completed") ||
+                   (Incident.Department_Head == currentUserName && Incident.Status != "Completed"))
                     {
-                        <button @onclick="()=>ToggleEditIncidentModal(Incident_ID)" class="view__incident__detail-cta-btn" disabled="@IsEditButtonDisabled()">
+                        <button @onclick="()=>ToggleEditIncidentModal(Incident_ID)"
+                                class="view__incident__detail-cta-btn"
+                                disabled="@IsEditButtonDisabled()">
                             <i class="bi bi-pencil-square"></i> Edit
                         </button>
                     }
@@ -91,7 +96,7 @@
                 {
                     <div class="view__incident__detail__comment__post">
                         <i class="bi bi-fullscreen" @onclick="ToggleCommentFormFullScreen"></i>
-                        @if ((Incident.Status != "Completed" && Incident.Department_Head == currentUserName) || (IsAdmin && Incident.Status != "Completed"))
+                        @if ((Incident.Status != "Completed" && Incident.User_ID == currentUserId) || (IsAdmin && Incident.Status != "Completed"))
                         {
                             <button @onclick="ToggleCommentForm" class="view__incident__detail__comment__post-btn">Comment</button>
                         }
@@ -130,7 +135,6 @@
             <p>No comment yet</p>
             </div>
             }
-                @* @if ((Incident.Status == "Pending" && (Incident.Department_Head == currentUserName || IsAdmin)))*@
                 @if ((Incident.Status == "Pending" &&
                (Incident.User_ID == currentUserId || Incident.Resolver_ID == currentUserId || IsAdmin)))
                 {
@@ -166,10 +170,9 @@
                                         <button @onclick='() => SelectCommentOption("I have an issue with my computer")' disabled="@isCommentNotEmpty">I have an issue with my computer</button>
                                         <button @onclick='() => SelectCommentOption("I need help with software installation")' disabled="@isCommentNotEmpty">I need help with software installation</button>
                                         <button @onclick='() => SelectCommentOption("My internet is not working")' disabled="@isCommentNotEmpty">My internet is not working</button>
-                                        <button @onclick='() => SelectCommentOption("My email isn’t syncing")' disabled="@isCommentNotEmpty">My email isn’t syncing</button>
+                                        <button @onclick='() => SelectCommentOption("Password reset request")' disabled="@isCommentNotEmpty">Password reset request</button>
                                     </div>
                                 }
-
                                 @if (!string.IsNullOrEmpty(imagePreview))
                                 {
                                     <div class="view__incident__detail__comment-form-preview-image">
@@ -216,7 +219,6 @@
                     </EditForm>
                 }
             </div>
-
             @if (isCommentFormFullScreen == true)
             {
                 <div class="view__incident__detail-fullscreen @(isCommentFormFullScreen ? "comment__form__fullscreen-open": "comment__form__fullscreen-closed")">
@@ -250,7 +252,7 @@
                         <div class="view__incident__detail__fullscreen-center">
                             <div class="view__incident__detail__fullscreen-form">
                                 <textarea rows="3" class="view__incident__detail__fullscreen-textarea" cols="10" maxlength="250" placeholder="Please provide any relevant information, observations, or suggestions regarding the incident. . ." @bind="newComment"></textarea>
-                                @if ((Incident.Status != "Completed" && Incident.Department_Head == currentUserName) || (IsAdmin && Incident.Status != "Completed"))
+                                @if ((Incident.Status != "Completed" && Incident.User_ID == currentUserId) || (IsAdmin && Incident.Status != "Completed"))
                                 {
                                     <div class="view__incident__detail__fullscreen__form-button">
                                         <button type="submit" class="view__incident__detail__fullscreen__form-submit" @onclick="PostComment">Submit</button>
@@ -310,7 +312,6 @@
                 </div>
             }
         </div>
-
         @if (isImageModalVisible)
         {
             <div class="image-modal-overlay" @onclick="CloseImageModal">
@@ -359,6 +360,7 @@
     private string imageToDisplay;
 
     private Timer _timer;
+    private bool _isTimerRunning;
     private const int RefreshInterval = 30000;
 
     protected override async Task OnInitializedAsync()
@@ -382,21 +384,74 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await StartTimer();
+        }
+    }
+
+    public void Dispose()
+    {
+        StopTimer();
+        Console.WriteLine("Component disposed and timer stopped in view incident details.");
+    }
+
     private async Task StartTimer()
     {
-        _timer = new Timer(RefreshInterval);
-        _timer.Elapsed += async (sender, e) => await InvokeAsync(() => LoadComments());
-        _timer.Start();
+        if (!_isTimerRunning)
+        {
+            _timer = new Timer(RefreshInterval);
+            _timer.Elapsed += async (sender, e) =>
+            {
+                if (!isEditIncidentModalFormVisible)
+                {
+                    await InvokeAsync(() => LoadComments());
+                }
+            };
+            _timer.Start();
+            _isTimerRunning = true;
+            Console.WriteLine("Timer started in view incident details.");
+        }
     }
 
     private void StopTimer()
     {
-        if (_timer != null)
+        if (_isTimerRunning)
         {
-            _timer.Stop();
-            _timer.Dispose();
+            _timer?.Stop();
+            _timer?.Dispose();
+            _isTimerRunning = false;
+            Console.WriteLine("Timer stopped in view incident details.");
+        }
+        else
+        {
+            Console.WriteLine("Timer is not running, nothing to stop in view incident details.");
         }
     }
+
+    // private async Task StartTimer()
+    // {
+    //     _timer = new Timer(RefreshInterval);
+    //     _timer.Elapsed += async (sender, e) =>
+    //     {
+    //         if (!isEditIncidentModalFormVisible)
+    //         {
+    //             await InvokeAsync(() => LoadComments());
+    //         }
+    //     };
+    //     _timer.Start();
+    // }
+
+    // private void StopTimer()
+    // {
+    //     if (_timer != null)
+    //     {
+    //         _timer.Stop();
+    //         _timer.Dispose();
+    //     }
+    // }
 
     private async Task IsRecurring()
     {
@@ -437,7 +492,10 @@
     private void OnEditIncidentModalClose() => isEditIncidentModalFormVisible = false;
     private async void OnIncidentUpdate() => await LoadIncidentDetails();
 
-    private bool IsEditButtonDisabled() => IsAdmin ? Incident.Status == "Completed" : Incident.Status == "Completed" || Incident.Department_Head != currentUserName;
+    private bool IsEditButtonDisabled() =>
+     IsAdmin
+         ? Incident.Status == "Completed"
+         : (Incident.Status == "Completed" || Incident.User_ID != currentUserId) && Incident.Department_Head != currentUserName;
 
     private async Task PostComment()
     {
@@ -463,7 +521,8 @@
         var comment = new Board_TBL
             {
                 User_ID = currentUserId,
-                Resolver_ID = incident!.Resolver_ID,
+                Resolver_ID = currentUserId == incident!.Resolver_ID ? 0 : incident?.Resolver_ID ?? 0,
+                // Resolver_ID = incident!.Resolver_ID,
                 Incident_ID = Incident_ID,
                 Username = currentUserName,
                 Comment = newComment!,

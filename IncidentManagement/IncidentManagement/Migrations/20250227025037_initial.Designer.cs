@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IncidentManagement.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250224064757_initial")]
+    [Migration("20250227025037_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -133,6 +133,14 @@ namespace IncidentManagement.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("User_ID"));
+
+                    b.Property<string>("Department_Head")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Password")
                         .IsRequired()

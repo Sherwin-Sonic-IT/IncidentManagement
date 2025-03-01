@@ -9,6 +9,8 @@
         { "Network & Connectivity Issues", new List<string> { "Internet connectivity problems", "Slow network performance" } },
         { "User Account & Access Issues", new List<string> { "Password reset request", "Permissions/access control issues" } },
         { "End-User Requests & Assistance", new List<string> { "Software Installation" } },
+        { "WMS Issue", new List<string> { "WMS Account Login Failure" } },
+        { "ISR Issue", new List<string> { "ISR Password reset request" } },
         // Logistics
          { "Transportation/Equipment Management", new List<string> { "Flat Tires" } },
     };
@@ -26,6 +28,10 @@
          { "Permissions/access control issues", new List<string> { "Important" } },
          // End-User Requests & Assistance
          { "Software Installation", new List<string> { "Routine" } },
+         //WMS Issue
+         { "WMS Account Login Failure", new List<string> { "Urgent" } },
+         //ISR Issue
+         { "ISR Password reset request", new List<string> { "Routine" } },
          // Transportation/Equipment Management
          { "Flat Tires", new List<string> { "Routine" } },
     };
@@ -43,72 +49,41 @@
         { "Permissions/access control issues", new List<string> { "Glenne" } },
         // End-User Requests & Assistance
         { "Software Installation", new List<string> { "Glenne" } },
+         //WMS Issue
+         { "WMS Account Login Failure", new List<string> { "Froilan" } },
+        //ISR Issue
+        { "ISR Password reset request", new List<string> { "Emman" } },
         // Transportation/Equipment Management
         { "Flat Tires", new List<string> { "Aying" } },
-    };
-
-        public Dictionary<string, List<string>> DepartmentHeadLocationDepartment { get; } = new()
-    {
-        { "MAIN (SALES)", new List<string> { "Ruel" } },
-        { "MAIN (OPD)", new List<string> { "Charol" } },
-        { "MAIN (CASHIER)", new List<string> { "Mimie" } },
-        { "HR", new List<string> { "Joan" } },
-        { "IT", new List<string> { "Junix Chan" } },
-        { "LOGISTICS", new List<string> { "Christina" } },
-        { "DANA", new List<string> { "Bernz" } },
-        { "DIGOS (SALES)", new List<string> { "Ethan" } },
-        { "DIGOS (OPD)", new List<string> { "Liam" } },
-        { "DIGOS (CASHIER)", new List<string> { "Lucas" } },
-        { "KIDAPAWAN (SALES)", new List<string> { "James" } },
-        { "KIDAPAWAN (OPD)", new List<string> { "Olivia" } },
-        { "KIDAPAWAN (CASHIER)", new List<string> { "Sophia" } },
-        { "COTABATO (SALES)", new List<string> { "Mia" } },
-        { "COTABATO (OPD)", new List<string> { "Chloe" } },
-        { "COTABATO (CASHIER)", new List<string> { "Ava" } },
     };
 
         public static readonly Dictionary<string, List<string>> LocationDepartments = new()
     {
         { "MAIN OFFICE", new List<string> { "MAIN (SALES)", "MAIN (OPD)", "MAIN (CASHIER)", "HR", "IT", "LOGISTICS" } },
         { "DANA OFFICE", new List<string> { "DANA" } },
-        { "DIGOS OFFICE", new List<string> { "DIGOS (SALES)", "DIGOS (OPD)", "DIGOS (CASHIER)" } },
-        { "KIDAPAWAN OFFICE", new List<string> { "KIDAPAWAN (SALES)", "KIDAPAWAN (OPD)", "KIDAPAWAN (CASHIER)" } },
-        { "COTABATO OFFICE", new List<string> { "COTABATO (SALES)", "COTABATO (OPD)", "COTABATO (CASHIER)" } }
+        //{ "DIGOS OFFICE", new List<string> { "DIGOS (SALES)", "DIGOS (OPD)", "DIGOS (CASHIER)" } },
+        //{ "KIDAPAWAN OFFICE", new List<string> { "KIDAPAWAN (SALES)", "KIDAPAWAN (OPD)", "KIDAPAWAN (CASHIER)" } },
+        //{ "COTABATO OFFICE", new List<string> { "COTABATO (SALES)", "COTABATO (OPD)", "COTABATO (CASHIER)" } }
     };
 
-
-        public static readonly Dictionary<string, Dictionary<string, int>> departmentUserMap = new()
+        public Dictionary<string, List<string>> DepartmentHeadLocationDepartment { get; } = new()
     {
-        { "MAIN OFFICE", new Dictionary<string, int> {
-            { "MAIN (SALES)", 2 },
-            { "MAIN (OPD)", 3 },
-            { "MAIN (CASHIER)", 4 },
-            { "HR", 5 },
-            { "IT", 6 },
-            { "LOGISTICS", 7 }
-        }},
-
-        { "DANA OFFICE", new Dictionary<string, int> {
-            { "DANA", 8 }
-        }},
-
-        { "DIGOS OFFICE", new Dictionary<string, int> {
-            { "DIGOS (SALES)", 9 },
-            { "DIGOS (OPD)", 10 },
-            { "DIGOS (CASHIER)", 11 }
-        }},
-
-        { "KIDAPAWAN OFFICE", new Dictionary<string, int> {
-            { "KIDAPAWAN (SALES)", 12 },
-            { "KIDAPAWAN (OPD)", 13 },
-            { "KIDAPAWAN (CASHIER)", 14 }
-        }},
-
-        { "COTABATO OFFICE", new Dictionary<string, int> {
-            { "COTABATO (SALES)", 15 },
-            { "COTABATO (OPD)", 16 },
-            { "COTABATO (CASHIER)", 17 }
-        }}
+        { "MAIN (SALES)", new List<string> { "Ruel" } },
+        { "MAIN (OPD)", new List<string> { "Carol" } },
+        { "MAIN (CASHIER)", new List<string> { "Mimie" } },
+        { "HR", new List<string> { "Joan" } },
+        { "IT", new List<string> { "Junix Chan" } },
+        { "LOGISTICS", new List<string> { "Christina" } },
+        { "DANA", new List<string> { "Bernz" } },
+        //{ "DIGOS (SALES)", new List<string> { "Ethan" } },
+        //{ "DIGOS (OPD)", new List<string> { "Liam" } },
+        //{ "DIGOS (CASHIER)", new List<string> { "Lucas" } },
+        //{ "KIDAPAWAN (SALES)", new List<string> { "James" } },
+        //{ "KIDAPAWAN (OPD)", new List<string> { "Olivia" } },
+        //{ "KIDAPAWAN (CASHIER)", new List<string> { "Sophia" } },
+        //{ "COTABATO (SALES)", new List<string> { "Mia" } },
+        //{ "COTABATO (OPD)", new List<string> { "Chloe" } },
+        //{ "COTABATO (CASHIER)", new List<string> { "Ava" } },
     };
 
         public static readonly Dictionary<string, int> IncidentNameUserMap = new()
@@ -121,11 +96,11 @@
         { "Password reset request", 1 },
         { "Permissions/access control issues", 1 },
         { "Software Installation", 1 },
+        { "WMS Account Login Failure", 1 },
+        { "ISR Password reset request", 1 },
         //Logistics
-        { "Flat Tires", 7 },
+        { "Flat Tires", 5 },
     };
-
-
 
     }
 }

@@ -1,186 +1,159 @@
 ﻿@page "/troubleshoot"
-@rendermode InteractiveAuto
-
-
-
+@attribute [Authorize(Roles = "Admin, User, Head")]
+@rendermode @(new InteractiveAutoRenderMode(false))
 
 <div class="troubleshoot">
-    <div class="troubleshoot__body">
-        <div class="troubleshoot__body-left">
-            <img src="\assets\troubleshoot\troubleshoot.png" class="troubleshoot__image-profile"/>
-            <h1 class="troubleshoot__title">Troubleshoot Guide for Incident Management</h1>
-            <p>This Troubleshoot Guide is designed to help Incident Management teams effectively identify, investigate, and resolve issues that disrupt normal business operations. The guide will cover common troubleshooting steps, tips for identifying root causes, and techniques for escalating issues when necessary.</p>
-            <h3>1. Initial Incident Identification</h3>
-            <p>Before diving into troubleshooting, it’s crucial to verify and assess the incident. This will guide the investigation process and ensure resources are allocated appropriately.</p>
-            <label><strong>Steps:</strong></label>
-            <ul class="troubleshoot__steps">
-                <li class="troubleshoot__step"><strong>Confirm Incident:</strong> Validate that the reported issue is not a user error or a misunderstanding.</li>
-                <li class="troubleshoot__step"><strong>Check for Widespread Impact:</strong> Verify if the incident affects a single user, a group of users, or an entire system/service.</li>
-                <li class="troubleshoot__step"><strong>Gather Context:</strong> Collect information such as error messages, logs, and system states from the user or monitoring systems.</li>
-            </ul>
-            <label><strong>Tools:</strong></label>
-            <ul class="troubleshoot__tools">
-                <li class="troubleshoot__tool">Monitoring tools (e.g., New Relic, Datadog, Splunk)</li>
-                <li class="troubleshoot__tool">Incident tracking system (e.g., ServiceNow, Jira)</li>
-                <li class="troubleshoot__tool">Communication tools (e.g., Slack, Microsoft Teams)</li>
-            </ul>
-            <h3>2. Categorizing the Incident</h3>
-            <p>Categorizing the incident helps to prioritize the issue, allocate appropriate resources, and ensure proper escalation channels are followed.</p>
-            <label style="margin-bottom: 0.5rem;"><strong>Steps: </strong></label>
-            <p><strong>Severity Level:</strong> Assign a severity level based on business impact. For example:</p>
-            <ul class="troubleshoot__steps">
-                <li class="troubleshoot__step"><strong>Critical(Severity 1):</strong> Complete system outage or service disruption</li>
-                <li class="troubleshoot__step"><strong>High(Severity 2):</strong> Major functionality loss, affecting multiple users or critical processes.</li>
-                <li class="troubleshoot"><strong>Medium (Severity 3):</strong> Minor service degradation or localized issues.</li>
-            </ul>
-            <p><strong>Incident Type</strong>: Classify the incident based on its nature:</p>
-            <ul class="troubleshoot__incident-types">
-                <li class="troubleshoot__incident-type"><strong>Hardware Failure</strong></li>
-                <li class="troubleshoot__incident-type"><strong>Software Bug</strong></li>
-                <li class="troubleshoot__incident-type"><strong>Network Issues</strong></li>
-                <li class="troubleshoot__incident-type"><strong>User Error</strong></li>
-                <li class="troubleshoot__incident-type"><strong>External Dependencies (e.g., third-party services)s</strong></li>
-            </ul>
-            <h3>3. Investigating the Incident</h3>
-            <p>Once an incident is confirmed, it is time to conduct a deeper investigation to identify the root cause. The investigation process varies depending on the incident's category and impact.</p>
-            <label><strong>General Investigation Steps:</strong></label>
-            <ul class="troubleshoot__steps">
-                <li class="troubleshoot__step"><strong>Reproduce the Issue:</strong> If possible, try to replicate the issue under controlled conditions to understand its cause.</li>
-                <li class="troubleshoot__step"><strong>Check System Logs:</strong> Inspect application logs, server logs, error logs, and system event logs.</li>
-                <li class="troubleshoot__step"><strong>Monitor Resource Usage:</strong> Evaluate system performance and resource utilization (e.g., CPU, memory, disk space, network).</li>
-                <li class="troubleshoot__step"><strong>Check for Recent Changes:</strong> Review any recent changes to the system or application (e.g., updates, patches, deployments).</li>
-                <li class="troubleshoot__step"><strong>Assess Dependencies:</strong> Identify any external or internal systems that the affected system relies on (e.g., databases, APIs, third-party services).</li>
-            </ul>
-            <label><strong>Tools:</strong> </label>
-            <ul class="troubleshoot__tools">
-                <li class="troubleshoot__tool">Log aggregation systems (e.g., ELK Stack, Splunk)</li>
-                <li class="troubleshoot__tool">Performance monitoring tools (e.g., Grafana, Nagios)</li>
-                <li class="troubleshoot__tool">Configuration management tools (e.g., Ansible, Puppet, Chef)</li>
-            </ul>
-            <h3>4. Resolving the Incident</h3>
-            <p>Based on the findings, take action to resolve the incident. The resolution process may vary depending on the nature of the issue.</p>
-            <label><strong>Resolution Techniques:</strong></label>
-            <ul class="troubleshoot__techniques">
-                <li class="troubleshoot__technique"><strong>Restarting Services:</strong> For issues caused by unresponsive services or memory leaks, restarting the service may resolve the issue.</li>
-                <li class="troubleshoot__technique"><strong>Rollback/Undo Changes:</strong> If recent updates or changes triggered the issue, consider rolling them back or undoing the changes.</li>
-                <li class="troubleshoot__technique"><strong>Patch or Fix Bugs:</strong> If the root cause is a software bug or vulnerability, work with development teams to apply a patch or deploy a fix.</li>
-                <li class="troubleshoot__technique"><strong>Network Fixes:</strong> For network issues, check router/switch configurations, firewall rules, and DNS settings to ensure connectivity.</li>
-                <li class="troubleshoot__technique"><strong>Restore from Backup:</strong> If data loss or corruption occurred, restore from a reliable backup.</li>
-                <li class="troubleshoot__technique"><strong>External Dependencies:</strong> If the incident is caused by third-party services, communicate with the vendor and wait for their resolution.</li>
-            </ul>
-            <h3>5. Communicating with Stakeholders</h3>
-            <p>Clear communication is crucial during the incident management process. Keep stakeholders informed about the incident's status, progress, and resolution.</p>
-            <label><strong>Communication Best Practices:</strong></label>
-            <ul class="troubleshoot__practices">
-                <li class="troubleshoot__practice"><strong>Status Updates:</strong> Regularly update stakeholders on the status of the incident (e.g., hourly or when a significant milestone is reached).</li>
-                <li class="troubleshoot__practice"><strong>Escalation Protocol:</strong> If the issue persists and cannot be resolved within an agreed-upon time frame, escalate the issue to higher-level support or management.</li>
-                <li class="troubleshoot__practice"><strong>Post-Incident Summary: </strong>Once the issue is resolved, provide a summary to all stakeholders, detailing the root cause, resolution steps, and preventive measures.</li>
-            </ul>
-            <label><strong>Tools:</strong></label>
-            <ul class="troubleshoot__tools">
-                <li class="troubleshoot__tool">Incident tracking systems (e.g., ServiceNow, PagerDuty)</li>
-                <li class="troubleshoot__tool">Email, Slack, or Microsoft Teams for updates</li>
-                <li class="troubleshoot__tool">Status page (e.g., Statuspage.io) for public communication</li>
-            </ul>
-            <h3>6. Post-Incident Review (PIR)</h3>
-            <p>After the incident is resolved, conduct a post-incident review to identify improvements in your incident management processes and prevent recurrence.</p>
-            <label><strong>Steps:</strong></label>
-
-            <ul class="troubleshoot__steps">
-                <li class="troubleshoot__step"><strong>Root Cause Analysis:</strong> Perform a thorough investigation to understand why the incident occurred and identify the underlying cause.</li>
-                <li class="troubleshoot__step"><strong>Review Incident Response:</strong> Evaluate how the incident was managed, the effectiveness of communication, and whether resources were appropriately allocated.</li>
-                <li class="troubleshoot__step"><strong>Implement Preventive Measures:</strong> Based on the findings, propose changes to improve system resilience, implement monitoring improvements, or refine incident management processes.</li>
-                <li class="troubleshoot__step"><strong>Implement Preventive Measures:</strong> Based on the findings, propose changes to improve system resilience, implement monitoring improvements, or refine incident management processes.</li>
-                <li><strong>Lessons Learned:</strong> Document lessons learned and share them with relevant teams to enhance future response strategies.</li>
-            </ul>
-            <label><strong>Tools:</strong></label>
-            <ul class="troubleshoot__tools">
-                <li class="troubleshoot__tool">Post-mortem documents or templates</li>
-                <li class="troubleshoot__tool">Root cause analysis tools (e.g., Fishbone diagrams, 5 Whys)</li>
-            </ul>
-                <h3>Conclusion</h3>
-                <p>Effective incident management is key to maintaining system uptime and ensuring business continuity. By following this troubleshooting guide, you can systematically identify, investigate, resolve, and learn from incidents. The goal is not just to fix the issue at hand but to continuously improve processes and minimize the risk of similar incidents occurring in the future.</p>
+    <div class="troubleshoot__header">
+        <div class="troubleshoot__header-search">
+            <input type="search" class="troubleshoot__header-search-input" placeholder="Search By Incident Name" @bind="searchQuery" />
+            <button type="submit" class="troubleshoot__header-search-submit" @onclick="OnSearchClick">Search</button>
         </div>
-
-
-
-
-        <div class="troubleshoot__body-right" >
-            <div class="" id="right-side">
-                <div class="troubleshoot__view-all">
-                    <button class="troubleshoot__view__all-btn" @onclick="ToggleViewAll">View All <i class="bi bi-arrow-right"></i></button>
-                </div>
-                <h3 class="troubleshoot__table__content-title">Table Of Content</h3>
-                <label class="troubleshoot__table__category-incident-name"><strong>Network Issues</strong></label>
-                <ul class="troubleshoot__categories">
-                    <li class="troubleshoot__category"><a href="#">Network Connectivity Outage</a></li>
-                    <li class="troubleshoot__category"><a href="#">Slow Network Performance</a></li>
-                    <li class="troubleshoot__category"><a href="#">DNS Resolution Failure</a></li>
-                </ul>
-                <div class="troubleshoot__tutorial-video">
-                    <iframe width="560" height="315" src="https://www.youtube.com/embed/1i3XdhC2ZAs?si=uNMm-XIPgLTDlsC_" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-                </div>
-                <div class="troubleshoot__related-article">
-                    <h3>Related Articles</h3>
-                </div>
-            </div>
-        </div>
+        <label>Can't find what you're looking for? Contact: <span class="troubleshoot__header-contact">+6391234567890</span></label>
     </div>
 
-
-
-
-
-
-
-
-    <div class="troubleshoot__view__all-list @(isViewAllVisible ? "troubleshoot__show__view__all-list" : "troubleshoot__hide__view-all-list")">
-        <div class="troubleshoot__view__all__list-close">
-            <i class="bi bi-x-lg" @onclick="ToggleViewAll"></i>
+    @if (searchResults != null && searchResults.Any())
+    {
+        <div class="troubleshoot__search-results">
+            <label class="troubleshoot__search-results-list-total-title">Total Results</label>
+            <div class="troubleshoot__search-results-list">
+                @foreach (var result in searchResults)
+                {
+                    <div class="troubleshoot__search-results-list-item">
+                        <img src="@result.ImageUrl" class="troubleshoot__search-results-list-item-icon" alt="@result.Name" />
+                        @result.Name
+                    </div>
+                }
+            </div>
+            <div class="troubleshoot__center-survey">
+                <label>What do you think of our troubleshoot center? Please <a href="#">take a quick survey</a></label>
+            </div>
         </div>
-        <label>Newtowork Issues</label>
-        <ul class="troubleshoot__categories">
-            <li class="troubleshoot__category"><a href="#">Network Connectivity Outage</a></li>
-            <li class="troubleshoot__category"><a href="#">Slow Network Performance</a></li>
-            <li class="troubleshoot__category"><a href="#">DNS Resolution Failure</a></li>
-        </ul>
-        <label>Software/Application Issues</label>
-        <ul class="troubleshoot__categories">
-            <li class="troubleshoot__category"><a href="#">Application Crash During Launch</a></li>
-            <li class="troubleshoot__category"><a href="#">Software Update Fails to Install</a></li>
-            <li class="troubleshoot__category"><a href="#">Incorrect Data Display in Report Generation</a></li>
-        </ul>
-        <label>Hardware Issues</label>
-        <ul class="troubleshoot__categories">
-            <li class="troubleshoot__category"><a href="#">Server Failure</a></li>
-            <li class="troubleshoot__category"><a href="#">Printer Not Responding</a></li>
-            <li class="troubleshoot__category"><a href="#">Keyboard Malfunction on Employee Computer</a></li>
-        </ul>
-        <label>Access Issues</label>
-        <ul class="troubleshoot__categories">
-            <li class="troubleshoot__category"><a href="#">User Account Locked Out</a></li>
-            <li class="troubleshoot__category"><a href="#">Unable to Access Shared Drive</a></li>
-            <li class="troubleshoot__category"><a href="#">Single Sign-On (SSO) Login Failure</a></li>
-        </ul>
-        <label>Environmental Issues</label>
-        <ul class="troubleshoot__categories">
-            <li class="troubleshoot__category"><a href="#">Power Outage in the Data Center</a></li>
-            <li class="troubleshoot__category"><a href="#">HVAC System Malfunction in Server Room</a></li>
-            <li class="troubleshoot__category"><a href="#">Flickering Office Lights</a></li>
-        </ul>
+    }
+    else if (!string.IsNullOrEmpty(searchQuery) && searchResults.Count == 0 && showNoResultsMessage)
+    {
+        <p class="troubleshoot__search-no-results-found">No results found.</p>
+    }
+
+    <div class="troubleshoot__body">
+        <div class="troubleshoot__body-category">
+            <p class="troubleshoot__body-category-title">How can we help you?</p>
+            <div class="troubleshoot__body-category-list">
+                @foreach (var category in categories)
+                {
+                    <div class="troubleshoot__body-category-item">
+                        @category
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                }
+            </div>
+            <button class="troubleshoot__body-view-all-category-btn">View All</button>
+        </div>
+
+        <div class="troubleshoot__body-support-team">
+            <p class="troubleshoot__body-support-team-title">IT Team</p>
+            <div class="troubleshoot__body-support-team-list">
+                @foreach (var member in supportTeam)
+                {
+                    <div class="troubleshoot__body-support-team-member">
+                        <img src="@member.ImageUrl" alt="@member.Name" class="troubleshoot__body-support-team-member-image" />
+                        <div class="troubleshoot__body-support-team-member-info">
+                            <p class="troubleshoot__body-support-team-member-name">@member.Name</p>
+                            <p class="troubleshoot__body-support-team-member-position">@member.Position</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="troubleshoot__body-explore-more">
+            <i class="bi bi-chevron-down"></i>
+        </div>
     </div>
 
 </div>
 
-
 @code {
+    private string searchQuery = "";
+    private List<SearchItem> searchResults = new List<SearchItem>();
 
-
-    private bool isViewAllVisible = false;
-
-    private void ToggleViewAll()
+    // Updated list of all items with corresponding images
+    private List<SearchItem> allItems = new List<SearchItem>
     {
-        isViewAllVisible = !isViewAllVisible;
+        new SearchItem { Name = "Device Malfunction (printers, scanners, etc)", ImageUrl = "/assets/searchresultsicon/device-malfunction.png" },
+        new SearchItem { Name = "Workstation /PC/Laptop Issues", ImageUrl = "/assets/searchresultsicon/pc-laptop-issues.png" },
+        new SearchItem { Name = "Internet connectivity problems", ImageUrl = "/assets/searchresultsicon/internet-connectivity-problems.png" },
+        new SearchItem { Name = "Software Installation", ImageUrl = "/assets/searchresultsicon/software-installation.png" },
+        new SearchItem { Name = "Software Licensing Issues", ImageUrl = "/assets/searchresultsicon/software-license.png" },
+        new SearchItem { Name = "Software Crashes and Errors", ImageUrl = "/assets/searchresultsicon/software-error.png" },
+        new SearchItem { Name = "Software Performance Optimization", ImageUrl = "/assets/searchresultsicon/software-optimization.png" },
+        new SearchItem { Name = "Software Configuration and Setup", ImageUrl = "/assets/searchresultsicon/software-setup.png" },
+        new SearchItem { Name = "Flat Tires", ImageUrl = "/assets/searchresultsicon/flat-tires.png" },
+    };
+
+    private List<string> categories = new List<string>
+    {
+       "Network Issues",
+        "Software Troubleshooting",
+        "Hardware Support",
+        "System Errors",
+        "General Inquiries",
+        "Password Recovery",
+        "Account Access Issues",
+        "Device Setup and Configuration",
+        "Virus and Malware Removal"
+    };
+
+    public class SearchItem
+    {
+        public string Name { get; set; }
+        public string ImageUrl { get; set; }
     }
 
+    public class SupportTeamMember
+    {
+        public string Name { get; set; }
+        public string Position { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+    private List<SupportTeamMember> supportTeam = new List<SupportTeamMember>
+    {
+        new SupportTeamMember { Name = "Junix Chan", ImageUrl = "/assets/itteam/junixchan.jpg", Position = "IT Manager" },
+        new SupportTeamMember { Name = "Froilan Estalilla", ImageUrl = "/assets/itteam/froilan.jpg", Position = "IT Supervisor" },
+        new SupportTeamMember { Name = "Emman", ImageUrl = "/assets/itteam/emman.jpg", Position = "IT Assistant" },
+        new SupportTeamMember { Name = "JM Mabasa", ImageUrl = "/assets/itteam/mae.jpg", Position = "IT Assistant" },
+        new SupportTeamMember { Name = "Glenne", ImageUrl = "/assets/itteam/glenne.jpg", Position = "IT Assistant" },
+        new SupportTeamMember { Name = "Sherwin", ImageUrl = "/assets/itteam/sherwin.webp", Position = "IT Assistant" },
+    };
+
+    private string GetRandomLightColor()
+    {
+        Random random = new Random();
+        int r = random.Next(240, 256);
+        int g = random.Next(240, 256);
+        int b = random.Next(240, 256);
+        return $"rgb({r},{g},{b})";
+    }
+
+    private bool showNoResultsMessage = false;
+
+    private void OnSearchClick()
+    {
+        FilterSearchResults();
+    }
+
+    private void FilterSearchResults()
+    {
+        if (!string.IsNullOrEmpty(searchQuery))
+        {
+            // Filter search results based on the search query
+            searchResults = allItems.Where(item => item.Name.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)).ToList();
+            showNoResultsMessage = searchResults.Count == 0;
+        }
+        else
+        {
+            searchResults.Clear();
+            showNoResultsMessage = false;
+        }
+    }
 }

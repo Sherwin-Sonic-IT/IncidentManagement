@@ -30,7 +30,7 @@
     justify-content: flex-start;
     align-items: center;
     gap: 1rem;
-    border-left: 3px solid var(--color-darkmidnightblue);
+    border-left: 3px solid #436b95;
 }
 
 .comment__notification-title {

@@ -61,6 +61,7 @@ namespace IncidentManagement.Repositories
             incident.Category = model.Category;
             incident.Incident_Date = model.Incident_Date;
             incident.Location = model.Location;
+            incident.Department_Head = model.Department_Head;
             incident.Date_Reported = model.Date_Reported;
             incident.Reported_By = model.Reported_By;
             incident.Priority = model.Priority;

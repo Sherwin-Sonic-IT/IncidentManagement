@@ -38,6 +38,7 @@
     flex: 1;
     padding: 1rem 2rem 2rem 2rem;
     background-color: var(--color-white);
+    box-shadow: rgba(50, 50, 105, 0.15) 0px 2px 5px 0px, rgba(0, 0, 0, 0.05) 0px 1px 1px 0px;
     /*    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;*/
 }
 .view__incident-recurring {
@@ -124,6 +125,7 @@
 .view__incident__detail-right {
     flex: 0.4;
     overflow: hidden;
+    box-shadow: rgba(50, 50, 105, 0.15) 0px 2px 5px 0px, rgba(0, 0, 0, 0.05) 0px 1px 1px 0px;
 }
 
 
@@ -139,7 +141,8 @@
     align-items: flex-start;
     background-color: var(--color-white);
     padding-bottom: 0.75rem;
-/*    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;*/
+    box-shadow: rgba(50, 50, 105, 0.15) 0px 2px 5px 0px, rgba(0, 0, 0, 0.05) 0px 1px 1px 0px;
+    /*    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;*/
 }
 .view__incident__detail-cta, .view__incident__detail-support {
     width: 100%;
@@ -197,10 +200,11 @@
     max-height: 74.5vh;
     height: 74.5vh;
     margin-top: 1rem;
-/*    background-color: var(--color-white) !important;*/
+    /*    background-color: var(--color-white) !important;*/
     overflow-y: auto;
     position: relative;
     z-index: 1 !important;
+    box-shadow: rgba(50, 50, 105, 0.15) 0px 2px 5px 0px, rgba(0, 0, 0, 0.05) 0px 1px 1px 0px;
 }
 
 /* view || display comment */

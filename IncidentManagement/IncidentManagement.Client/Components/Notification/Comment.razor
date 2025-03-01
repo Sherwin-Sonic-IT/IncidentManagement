@@ -77,7 +77,7 @@
     private int unreadCommentsCount => groupedComments.Sum(group => group.Count());
 
     private Timer _timer;
-    private const int RefreshInterval = 20000;
+    private const int RefreshInterval = 30000;
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,8 +116,8 @@
         else
         {
             comments = comments.Where(comment =>
-             comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId)
-             .ToList();
+            comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId)
+            .ToList();
         }
         StateHasChanged();
     }

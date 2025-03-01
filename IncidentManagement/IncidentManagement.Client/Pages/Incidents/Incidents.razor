@@ -1,8 +1,7 @@
 ﻿@page "/incidents"
-@attribute [Authorize(Roles = "Admin, User")]
-@using Microsoft.AspNetCore.SignalR.Client
-
+@attribute [Authorize(Roles = "Admin, User, Head")]
 @rendermode @(new InteractiveAutoRenderMode(false))
+@implements IDisposable
 
 @if (altcolor)
 {
@@ -96,7 +95,7 @@
                         Items="FilteredAndSortedIncidents">
             <PropertyColumn Title="Incident ID" Property="@(c => c!.Incident_ID)" Width="fit-content" />
             <PropertyColumn Title="Incident Name" Property="@(c => c!.Incident_Name)" Width="fit-content" Class="incidents__table__incident__name" />
-            <PropertyColumn Title="Requested By" Property="@(c => c!.Reported_By)" Width="fit-content" />
+            <PropertyColumn Title="End/Affected-User" Property="@(c => c!.Reported_By)" Width="fit-content" />
             <PropertyColumn Title="Resolver" Property="@(c => c!.Resolver_Name)" Width="fit-content" />
             <PropertyColumn Title="Location" Property="@(c => c!.Location)" Width="fit-content" />
             <PropertyColumn Title="Date Reported" Property="@(c => c!.Date_Reported)" Width="fit-content" />
@@ -170,10 +169,18 @@
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
     public Incidents_TBL IncidentModel { get; set; } = new();
     private List<Incidents_TBL> Incident { get; set; } = new();
+    private List<Incidents_TBL> filteredIncidents = new List<Incidents_TBL>();
     private DateTime? DoubleClickToDate = null;
     private DateTime? selectedDate = null; 
 
+    private int currentUserId;
     private string currentUserName;
+    private ClaimsPrincipal currentUser;
+    private string currentUserLocation;
+    private string userRole;
+    private bool IsAdmin { get; set; }
+    private string adminUsername = "Glenne";
+
     private string searchTerm = string.Empty; 
     private string status = "Completed";
 
@@ -196,7 +203,6 @@
     private bool IsUpdateToastVisible = false;
     private bool IsDeleteToastVisible = false;
     private string ToastUserActionMessage = "";
-    private bool IsAdmin { get; set; }
     private bool sortByDescending = true; 
     private bool isRoutineSelected = true;
     private bool isImportantSelected = true;
@@ -206,8 +212,12 @@
     private bool isCompletedSelected = true;
     private bool altcolor = false;
 
+    private bool soundPlayed = false;
+    private bool isFirstLoad = true;
+
     private Timer _timer;
-    private const int RefreshInterval = 30000; 
+    private bool _isTimerRunning;
+    private const int RefreshInterval = 30000;
 
 
 
@@ -270,20 +280,73 @@
         await StartTimer();
     }
 
+    private async Task UserAuthentication()
+    {
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim != null)
+        {
+            currentUserId = int.Parse(userIdClaim.Value);
+        }
+        else
+        {
+            currentUserId = 0;
+        }
+
+        currentUserName = user.Identity!.Name!;
+        IsAdmin = currentUserName == adminUsername;
+        var roleClaim = user?.FindFirst(ClaimTypes.Role);
+        userRole = roleClaim?.Value ?? "No role assigned";
+    }
+
     public async Task LoadIncidents()
     {
         try
         {
             var incidents = await IncidentService.GetAllIncidentsAsync();
+            bool newIncidents = incidents.Count() > numResults;
+            numResults = incidents.Count();
+
+            if ((IsAdmin || userRole == "Head") && newIncidents && !soundPlayed && !isFirstLoad)
+            {
+                await JS.InvokeVoidAsync("playSound");
+                soundPlayed = true;
+            }
+            if (isFirstLoad)
+            {
+                soundPlayed = false;
+                isFirstLoad = false;
+            }
+
             Incident.Clear();
-            Incident.AddRange(incidents);       
-            numResults = Incident.Count;
-            completed = Incident.Count(i => i.Status == "Completed");
-            pending = Incident.Count(i => i.Status == "Pending");
-            others = Incident.Count(i => i.Priority == "Others" && i.Status == "Pending");
-            routine = Incident.Count(i => i.Priority == "Routine" && i.Status == "Pending");
-            important = Incident.Count(i => i.Priority == "Important" && i.Status == "Pending");
-            urgent = Incident.Count(i => i.Priority == "Urgent" && i.Status == "Pending");
+
+            if (IsAdmin)
+            {
+                filteredIncidents = incidents.ToList();
+            }
+            else if (userRole == "User")
+            {
+                filteredIncidents = incidents.Where(i => i.User_ID == currentUserId).ToList();
+            }
+            else if (userRole == "Head")
+            {
+                filteredIncidents = incidents.Where(i => i.Department_Head == currentUserName).ToList();
+            }
+            else
+            {
+                filteredIncidents = new List<Incidents_TBL>();
+            }
+
+            Incident.AddRange(filteredIncidents);
+            numResults = filteredIncidents.Count();
+            completed = filteredIncidents.Count(i => i.Status == "Completed");
+            pending = filteredIncidents.Count(i => i.Status == "Pending");
+            others = filteredIncidents.Count(i => i.Priority == "Others" && i.Status == "Pending");
+            routine = filteredIncidents.Count(i => i.Priority == "Routine" && i.Status == "Pending");
+            important = filteredIncidents.Count(i => i.Priority == "Important" && i.Status == "Pending");
+            urgent = filteredIncidents.Count(i => i.Priority == "Urgent" && i.Status == "Pending");
 
             priorityCounts["Urgent"] = urgent;
             priorityCounts["Important"] = important;
@@ -291,7 +354,6 @@
             priorityCounts["Others"] = others;
 
             StateHasChanged();
-
         }
         catch (Exception ex)
         {
@@ -299,36 +361,74 @@
         }
     }
 
-    private async Task StartTimer()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        _timer = new Timer(RefreshInterval);
-        _timer.Elapsed += async (sender, e) =>
+        if (firstRender)
         {
-            if (!isIncidentModalFormVisible && !isEditIncidentModalFormVisible)  
-            {
-                await InvokeAsync(() => LoadIncidents());
-            }
-        };
-        _timer.Start();
-    }
-
-
-    private void StopTimer()
-    {
-        if (_timer != null)
-        {
-            _timer.Stop();
-            _timer.Dispose();
+            await StartTimer();
         }
     }
 
-    public async Task UserAuthentication()
+    public void Dispose()
     {
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-        IsAdmin = user.IsInRole("Admin");
-        currentUserName = user.Identity.Name;
+        StopTimer();
+        Console.WriteLine("Component disposed and timer stopped in incidents.");
     }
+
+    private async Task StartTimer()
+    {
+        if (!_isTimerRunning)
+        {
+            _timer = new Timer(RefreshInterval);
+            _timer.Elapsed += async (sender, e) =>
+            {
+                if (!isEditIncidentModalFormVisible)
+                {
+                    await InvokeAsync(() => LoadIncidents());
+                }
+            };
+            _timer.Start();
+            _isTimerRunning = true;
+            Console.WriteLine("Timer started in incidents.");
+        }
+    }
+
+    private void StopTimer()
+    {
+        if (_isTimerRunning)
+        {
+            _timer?.Stop();
+            _timer?.Dispose();
+            _isTimerRunning = false;
+            Console.WriteLine("Timer stopped in incidents.");
+        }
+        else
+        {
+            Console.WriteLine("Timer is not running, nothing to stop in incidents.");
+        }
+    }
+
+    // private async Task StartTimer()
+    // {
+    //     _timer = new Timer(RefreshInterval);
+    //     _timer.Elapsed += async (sender, e) =>
+    //     {
+    //         if (!isIncidentModalFormVisible && !isEditIncidentModalFormVisible)  
+    //         {
+    //             await InvokeAsync(() => LoadIncidents());
+    //         }
+    //     };
+    //     _timer.Start();
+    // }
+
+    // private void StopTimer()
+    // {
+    //     if (_timer != null)
+    //     {
+    //         _timer.Stop();
+    //         _timer.Dispose();
+    //     }
+    // }  
 
     private void OnSearchChanged()
     {
@@ -402,11 +502,19 @@
         }
     }
 
+    // private bool IsEditButtonDisabled(Incidents_TBL incident)
+    // {
+    //     return (IsAdmin && incident.Status == "Completed") ||
+    //            (!IsAdmin && (incident.Status == "Completed" || incident.User_ID != currentUserId));
+    // }
+
     private bool IsEditButtonDisabled(Incidents_TBL incident)
     {
-        return (IsAdmin && incident.Status == "Completed") ||
-               (!IsAdmin && (incident.Status == "Completed" || incident.Department_Head != currentUserName));
+        return !(IsAdmin ||
+                 (incident.Status != "Completed" && incident.User_ID == currentUserId)) &&
+               !(incident.Department_Head == currentUserName);
     }
+
 
     private void HandleToastClosed(bool isClosed)
     {

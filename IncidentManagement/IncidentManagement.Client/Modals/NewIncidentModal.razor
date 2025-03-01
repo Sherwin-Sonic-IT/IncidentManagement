@@ -1,4 +1,5 @@
-﻿
+﻿@*
+
 @rendermode @(new InteractiveAutoRenderMode(false))
 
 <div class="new__incident-modal-overlay @(isIncidentModalFormVisible ? "show__new__incident-modal" : "hide__new__incident-modal")">
@@ -13,7 +14,6 @@
 
         <EditForm Model="IncidentModel" OnValidSubmit="HandleSave" FormName="AddIncident">
             <DataAnnotationsValidator />
-           @* <ValidationSummary />*@
             <div class="new__incident-modal-body">
                 <div class="new__incident-modal-form-group">
                     <div class="new__incident-modal-input-group">
@@ -42,7 +42,7 @@
                         </InputSelect>
                     </div>
                     <div class="new__incident-modal-input-group">
-                        <label>Department Head/Assigned</label>
+                        <label>Department Head</label>
                         <InputSelect @bind-Value="IncidentModel.Department_Head" disabled="@string.IsNullOrEmpty(IncidentModel.Location)" required>
                             @foreach (var incident in GetDepartmentHeadForLocationDepartment(IncidentModel.Location))
                             {
@@ -82,9 +82,9 @@
                         {
                         <option value="@incident">@incident</option>
                         }
-                        </InputSelect>                                                
+                        </InputSelect>
                         }
-                    </div>                  
+                    </div>
                 </div>
                 <div class="new__incident-modal-form-group">
                     <div class="new__incident-modal-input-group">
@@ -201,7 +201,7 @@
         }
         else
         {
-            currentUserId = 0; 
+            currentUserId = 0;
             Console.WriteLine("No User ID Found, Defaulting to 0");
         }
     }
@@ -301,9 +301,9 @@
     private void ResetCategory()
     {
         IncidentModel.Category = "";
-        IncidentModel.Incident_Name = null;  
-        IncidentModel.Priority = null;        
-        IncidentModel.Resolver_Name = null;   
+        IncidentModel.Incident_Name = null;
+        IncidentModel.Priority = null;
+        IncidentModel.Resolver_Name = null;
     }
 
     private async void CloseModal()
@@ -327,7 +327,7 @@
                 return locationGroup.Value[department];
             }
         }
-        return 0; 
+        return 0;
     }
 
     private async Task HandleSave()
@@ -371,12 +371,12 @@
                 }
                 else
                 {
-                    IncidentModel.User_ID = 0; 
+                    IncidentModel.User_ID = 0;
                 }
             }
             else
             {
-                IncidentModel.User_ID = 0; 
+                IncidentModel.User_ID = 0;
             }
             if (IncidentFormDictionary.IncidentNameUserMap.ContainsKey(IncidentModel.Incident_Name))
             {
@@ -384,7 +384,353 @@
             }
             else
             {
-                IncidentModel.Resolver_ID = 0; 
+                IncidentModel.Resolver_ID = 0;
+            }
+            ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
+        }
+        await OnSave.InvokeAsync(null);
+        CloseModal();
+    }
+}
+*@
+
+
+
+
+
+@rendermode @(new InteractiveAutoRenderMode(false))
+
+<div class="new__incident-modal-overlay @(isIncidentModalFormVisible ? "show__new__incident-modal" : "hide__new__incident-modal")">
+    <div class="new__incident-modal">
+        <div class="new__incident-modal-header">
+            <h5 class="new__incident-modal-header-title">NEW INCIDENT </h5>
+        </div>
+
+        <div class="new__incident-modal-reminder">
+            <i class="bi bi-exclamation-circle"></i> <p> You will be notified once your incident has been reviewed and actioned. Please check dashboard for updates.</p>
+        </div>
+
+        <EditForm Model="IncidentModel" OnValidSubmit="HandleSave" FormName="AddIncident">
+            <DataAnnotationsValidator />
+            <div class="new__incident-modal-body">
+                <div class="new__incident-modal-form-group">
+                    <div class="new__incident-modal-input-group">
+                        <label>Incident Date</label>
+                        <InputDate @bind-Value="IncidentModel.Incident_Date" min=@DateTime.Today.AddMonths(-1).ToString("yyyy'-'MM'-'dd")
+                                   max=@DateTime.Today.ToString("yyyy'-'MM'-'dd") />
+                    </div>
+                </div>
+                <div class="new__incident-modal-form-group">
+                    <div class="new__incident-modal-input-group">
+                        <div class="new__incident-modal-label-category">
+                            <label>Category</label> <i @onclick="IsCategoryDisabled ? null : ResetCategory" class="bi bi-arrow-clockwise @(!IsCategoryDisabled ? "enable__new__incident-modal-reset-category-icon" : "disabled__new__incident-modal-reset-category-icon")"></i>
+                        </div>
+                        <InputSelect @bind-Value="IncidentModel.Category" required>
+                            <option value="">--Select a category--</option>
+                            <option disabled>IT</option>
+                            <option value="Hardware Issues">Hardware Issues</option>
+                            <option value="Network & Connectivity Issues">Network & Connectivity Issues</option>
+                            <option value="User Account & Access Issues">User Account & Access Issues</option>
+                            <option value="End-User Requests & Assistance">End-User Requests & Assistance</option>
+                            <option value="WMS Issue">WMS Issue</option>
+                            <option value="ISR Issue">ISR Issue</option>
+                            <option disabled>LOGISTIC</option>
+                            <option value="Transportation/Equipment Management">Transportation/Equipment Management</option>
+                            <option value="Others">Others</option>
+                        </InputSelect>
+                    </div>
+                    <div class="new__incident-modal-input-group">
+                        <label>Incident Name</label>
+                        @if (IncidentModel.Category == "Others")
+                        {
+                            <InputText @bind-Value="IncidentModel.Incident_Name" disabled="@string.IsNullOrEmpty(IncidentModel.Category)" required />
+                        }
+                        else
+                        {
+                            <InputSelect @bind-Value="IncidentModel.Incident_Name" disabled="@string.IsNullOrEmpty(IncidentModel.Category)" required>
+                                <option value="">--Select an incident--</option>
+                                @foreach (var incident in GetIncidentNamesForCategory(IncidentModel.Category))
+                                {
+                                    <option value="@incident">@incident</option>
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+                </div>
+                <div class="new__incident-modal-form-group">
+                    <div class="new__incident-modal-input-group">
+                        <label>Priority</label>
+                        @if (IncidentModel.Category == "Others")
+                        {
+                            <InputSelect @bind-Value="IncidentModel.Priority" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
+                                <option value="Others">Others</option>
+                            </InputSelect>
+                        }
+                        else
+                        {
+                            <InputSelect @bind-Value="IncidentModel.Priority" disabled="@string.IsNullOrEmpty(IncidentModel.Incident_Name)" required>
+                                @foreach (var incident in GetPriorityForIncidentName(IncidentModel.Incident_Name))
+                                {
+                                    <option value="@incident">@incident</option>
+                                }
+                            </InputSelect>
+                        }
+                    </div>
+                    <div class="new__incident-modal-input-group">
+                        <label>Resolver Name</label>
+                        @if (IncidentModel.Category == "Others")
+                        {
+                            <InputText @bind-Value="IncidentModel.Resolver_Name" disabled="@(IsAdmin ? string.IsNullOrEmpty(IncidentModel.Incident_Name) : true)" placeholder="(Optional)" />
+                        }
+                        else
+                        {
+                            <InputSelect @bind-Value="IncidentModel.Resolver_Name"
+                                         disabled="@(IsAdmin ? string.IsNullOrEmpty(IncidentModel.Incident_Name) : true)">
+                                @foreach (var incident in GetResolverForIncidentName(IncidentModel.Incident_Name))
+                                {
+                                    <option value="@incident">@incident</option>
+                                }
+                            </InputSelect>
+
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="new__incident-modal-footer">
+                <button type="submit" class="new__incident-modal-btn new__incident-modal-btn-save">Save</button>
+                <button type="button" class="new__incident-modal-btn new__incident-modal-btn-cancel" @onclick="CloseModal">Cancel</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Inject] private AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+    [Parameter] public string Incident_ID { get; set; }
+    [Parameter] public bool isIncidentModalFormVisible { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+    public Incidents_TBL IncidentModel { get; set; } = new();
+    private Incidents_TBL ReturnIncident = new();
+
+    private bool IsAdmin { get; set; }
+    private int currentUserId;
+    private string currentUsername;
+    private string currentUserDepartment;
+    private string currentUserDepartmentHead;
+    private bool IsCategoryDisabled => string.IsNullOrEmpty(IncidentModel.Incident_Name);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UserAuthentication();
+    }
+
+    private async Task FocusInputField()
+    {
+        if (isIncidentModalFormVisible && string.IsNullOrEmpty(IncidentModel.Reported_By))
+        {
+            await JS.InvokeVoidAsync("focusInput", "input_reportedBy");
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || isIncidentModalFormVisible)
+        {
+            await FocusInputField();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(Incident_ID))
+        {
+            if (int.TryParse(Incident_ID, out var parsedID))
+            {
+                IncidentModel = await IncidentService.GetIncidentByIdAsync(parsedID);
+                await FocusInputField();
+            }
+            else
+            {
+                Console.WriteLine($"Invalid ID format: {Incident_ID}");
+            }
+        }
+        else
+        {
+            IncidentModel = new Incidents_TBL();
+            IncidentModel.Date_Reported = DateTime.Now;
+            IncidentModel.Incident_Date = DateTime.Now;
+        }
+    }
+
+    private async Task UserAuthentication()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        IsAdmin = user.IsInRole("Admin");
+        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+        var usernameClaim = user?.FindFirst(ClaimTypes.Name);
+        var departmentClaim = user?.FindFirst("Location");
+        var departmentHeadClaim = user?.FindFirst("Department_Head");
+        if (userIdClaim != null)
+        {
+            currentUserId = int.Parse(userIdClaim.Value);
+            currentUsername = usernameClaim!.Value;
+            currentUserDepartment = departmentClaim?.Value ?? "Unknown";
+            currentUserDepartmentHead = departmentHeadClaim?.Value ?? "Unknown";
+            Console.WriteLine($"User ID from Claim: {currentUserId}");
+            Console.WriteLine($"Username from Claim: {currentUsername}");
+            Console.WriteLine($"Department from Claim: {currentUserDepartment}");
+            Console.WriteLine($"Department from Claim: {currentUserDepartmentHead}");
+        }
+        else
+        {
+            currentUserId = 0;
+            currentUsername = "Unknown";
+            Console.WriteLine("No User ID or Username Found, Defaulting to 0 and Unknown");
+        }
+    }
+
+    private List<string> GetDepartmentHeadForLocationDepartment(string departmentHead)
+    {
+        if (string.IsNullOrEmpty(departmentHead))
+        {
+            return new List<string>();
+        }
+        else
+        {
+            if (IncidentFormDictionary.DepartmentHeadLocationDepartment.ContainsKey(departmentHead))
+            {
+                var department = IncidentFormDictionary.DepartmentHeadLocationDepartment[departmentHead];
+
+                if (department.Any())
+                {
+                    IncidentModel.Department_Head = department.First();
+                }
+
+                return department;
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+    }
+
+    private List<string> GetIncidentNamesForCategory(string category)
+    {
+        try
+        {
+            return string.IsNullOrEmpty(category) || !IncidentFormDictionary.CategoryIncidentNames.ContainsKey(category)
+                ? new List<string>()
+                : IncidentFormDictionary.CategoryIncidentNames[category];
+        }
+        catch
+        {
+            return new List<string>();
+        }
+    }
+
+    private List<string> GetPriorityForIncidentName(string incidentName)
+    {
+        if (string.IsNullOrEmpty(incidentName))
+        {
+            return new List<string>();
+        }
+        else
+        {
+            if (IncidentFormDictionary.IncidentNamePriority.ContainsKey(incidentName))
+            {
+                var priorities = IncidentFormDictionary.IncidentNamePriority[incidentName];
+
+                if (priorities.Any())
+                {
+                    IncidentModel.Priority = priorities.First();
+                }
+
+                return priorities;
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+    }
+
+    private List<string> GetResolverForIncidentName(string incidentName)
+    {
+        if (string.IsNullOrEmpty(incidentName))
+        {
+            return new List<string>();
+        }
+        else
+        {
+            if (IncidentFormDictionary.ResolverIncidentName.ContainsKey(incidentName))
+            {
+                var resolver = IncidentFormDictionary.ResolverIncidentName[incidentName];
+
+                if (resolver.Any())
+                {
+                    IncidentModel.Resolver_Name = resolver.First();
+                }
+
+                return resolver;
+            }
+            else
+            {
+                return new List<string>();
+            }
+        }
+    }
+
+    private void ResetCategory()
+    {
+        IncidentModel.Category = "";
+        IncidentModel.Incident_Name = null;
+        IncidentModel.Priority = null;
+        IncidentModel.Resolver_Name = null;
+    }
+
+    private async void CloseModal()
+    {
+        await OnClose.InvokeAsync(null);
+    }
+
+    // private void OnDepartmentChanged(ChangeEventArgs e)
+    // {
+    //     string selectedDepartment = e.Value.ToString();
+
+    //     IncidentModel.User_ID = GetUserID(selectedDepartment);
+    // }
+
+    // private int GetUserID(string department)
+    // {
+    //     foreach (var locationGroup in IncidentFormDictionary.departmentUserMap)
+    //     {
+    //         if (locationGroup.Value.ContainsKey(department))
+    //         {
+    //             return locationGroup.Value[department];
+    //         }
+    //     }
+    //     return 0;
+    // }
+
+    private async Task HandleSave()
+    {
+        if (IncidentModel.Incident_ID == 0)
+        {
+            IncidentModel.User_ID = currentUserId;
+            IncidentModel.Reported_By = currentUsername;
+            IncidentModel.Location = currentUserDepartment;
+            IncidentModel.Department_Head = currentUserDepartmentHead;
+            IncidentModel.Priority ??= IncidentModel.Category == "Others" ? "Others" : "Routine";
+            if (IncidentModel.Category == "Others")
+            {
+                IncidentModel.Resolver_Name = string.IsNullOrEmpty(IncidentModel.Resolver_Name) ? "TBD" : IncidentModel.Resolver_Name;
+            }
+            if (!string.IsNullOrEmpty(IncidentModel.Incident_Name) && IncidentFormDictionary.IncidentNameUserMap.ContainsKey(IncidentModel.Incident_Name))
+            {
+                IncidentModel.Resolver_ID = IncidentFormDictionary.IncidentNameUserMap[IncidentModel.Incident_Name];
             }
             ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
         }
@@ -392,83 +738,6 @@
         CloseModal();
     }
 
-    // private async Task HandleSave()
-    // {
-    //     if (string.IsNullOrEmpty(IncidentModel.Priority))
-    //     {
-    //         if (IncidentModel.Category == "Others")
-    //         {
-    //             IncidentModel.Priority = "Others";
-    //         }
-    //         else
-    //         {
-    //             IncidentModel.Priority = "Routine";
-    //         }
-    //     }
-
-    //     if (IncidentModel.Incident_ID == 0)
-    //     {
-    //         string selectedLocation = null;
-
-    //         foreach (var location in IncidentFormDictionary.LocationDepartments.Keys)
-    //         {
-    //             if (IncidentFormDictionary.LocationDepartments[location].Contains(IncidentModel.Location))
-    //             {
-    //                 selectedLocation = location;  
-    //                 break;
-    //             }
-    //         }
-    //         if (selectedLocation != null)
-    //         {
-    //             if (IncidentFormDictionary.departmentUserMap.ContainsKey(selectedLocation))
-    //             {
-    //                 var departmentUserMap = IncidentFormDictionary.departmentUserMap[selectedLocation];
-    //                 if (departmentUserMap.ContainsKey(IncidentModel.Location))
-    //                 {
-    //                     IncidentModel.User_ID = departmentUserMap[IncidentModel.Location];
-    //                 }
-    //                 else
-    //                 {
-    //                     IncidentModel.User_ID = 0; 
-    //                 }
-    //             }
-    //             else
-    //             {
-    //                 IncidentModel.User_ID = 0; 
-    //             }
-    //         }
-    //         else
-    //         {
-    //             IncidentModel.User_ID = 0; 
-    //         }
-    //         ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
-    //     }
-    //     await OnSave.InvokeAsync(null);
-    //     CloseModal();
-    // }
-
-    // private async Task HandleSave()
-    // {
-    //     if (string.IsNullOrEmpty(IncidentModel.Priority))
-    //     {
-    //         if (IncidentModel.Category == "Others")
-    //         {
-    //             IncidentModel.Priority = "Others";  
-    //         }
-    //         else
-    //         {
-    //             IncidentModel.Priority = "Routine"; 
-    //         }
-    //     }
-
-    //     if (IncidentModel.Incident_ID == 0)
-    //     {
-    //         ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
-    //     }
-    //     await OnSave.InvokeAsync(null);
-    //     CloseModal();
-    // }
-   
 }
 
 

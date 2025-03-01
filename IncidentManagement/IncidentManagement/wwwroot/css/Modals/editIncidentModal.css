@@ -99,8 +99,21 @@
 .edit__incident-modal-input-group input:focus, .edit__incident-modal-input-group select:focus {
     border: 1px solid var(--color-darkmidnightblue) !important;
 }
-
-
+.edit__incident-modal-label-category {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.edit__incident-modal-label-resolver-name {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.edit__incident-modal-label-resolver-name .bi {
+    font-size: 1.25rem;
+    color: var(--color-green);
+    cursor: pointer !important;
+}
 .edit__incident-modal-footer {
     display: flex;
     flex-direction: column;
