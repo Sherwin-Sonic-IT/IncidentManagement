@@ -1,6 +1,6 @@
 ﻿.comment__notification fluent-dialog[b-dsxskpj5rr]::part(control) {
     position: absolute;
-    top: 72px;
+    top: 65px;
     width: 370px;
     right: 14.5px;
     /*    height: 490px;*/
@@ -17,6 +17,17 @@
    
 .show__comment-notification {
     display: block;
+    position: relative;
+}
+.show__comment-notification::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    right: -18px;
+    width: 30px;
+    height: 30px;
+    background-color: var(--color-white);
+    transform: rotate(138deg) !important;
 }
 .hide__comment-notification {
     display: none;

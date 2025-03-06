@@ -14,15 +14,26 @@
 @using IncidentManagement.Components
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Authentication.Cookies
+@using SharedLibrary.AuthenticationInterface
+@using SharedLibrary.Interfaces
 @using SharedLibrary.Models
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using IncidentManagement.Components.Layout
+@using Microsoft.EntityFrameworkCore
 
 
 
 @inject DataContext dataContext
 @inject NavigationManager navigationManager
 @inject IJSRuntime js
+@inject IAuthenticationInterface AuthenticationService
+
+@inject IUser userSvc
+@inject ISystemRole sysRoleSvc
+@inject IRoleGrpHeader roleGrpSvc
+@inject IRoleGrpDetail roleGrpDetSvc
+@inject IMDApi mdApiSvc
+@inject IApplication appSvc
 

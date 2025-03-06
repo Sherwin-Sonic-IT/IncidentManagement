@@ -13,6 +13,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 @using IncidentManagement.Client.Modals
+@using SharedLibrary.AuthenticationInterface
 @using SharedLibrary.Dictionaries
 @using SharedLibrary.Interfaces
 @using SharedLibrary.Models
@@ -27,7 +28,17 @@
 @inject NavigationManager NavigationManager
 @inject IIncident IncidentService
 @inject IBoard BoardService
+@inject IAuthenticationInterface AuthenticationService
 @inject IJSRuntime JS
 @inject IncidentFormDictionary IncidentFormDictionary
+
+
+@inject IUser userSvc
+@inject ISystemRole sysRoleSvc
+@inject IRoleGrpHeader roleGrpSvc
+@inject IRoleGrpDetail roleGrpDetSvc
+@inject IMDApi mdApiSvc
+@inject IApplication appSvc
+
 
 

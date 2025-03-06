@@ -22,6 +22,38 @@ namespace IncidentManagement.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SharedLibrary.Models.ApplicationM", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Abbreviation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IP")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Port")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ApplicationM");
+                });
+
             modelBuilder.Entity("SharedLibrary.Models.Board_TBL", b =>
                 {
                     b.Property<int>("Comment_ID")
@@ -103,6 +135,10 @@ namespace IncidentManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Resolver_From_Dept")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Resolver_ID")
                         .HasColumnType("int");
 
@@ -123,19 +159,162 @@ namespace IncidentManagement.Migrations
                     b.ToTable("Incidents_TBL");
                 });
 
-            modelBuilder.Entity("SharedLibrary.Models.Users_TBL", b =>
+            modelBuilder.Entity("SharedLibrary.Models.RoleGroupDetailM", b =>
                 {
-                    b.Property<int>("User_ID")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("User_ID"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RoleGroupHeaderMId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SystemRoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationId");
+
+                    b.HasIndex("RoleGroupHeaderMId");
+
+                    b.HasIndex("SystemRoleId");
+
+                    b.ToTable("RoleGroupDetailM");
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.RoleGroupHeaderM", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RoleCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RoleGroupHeaderM");
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.StatusM", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Status_Desc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status_Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("StatusM");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Status_Desc = "Active",
+                            Status_Name = "Y"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Status_Desc = "Inactive",
+                            Status_Name = "N"
+                        });
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.SystemRoleM", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("RoleCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoleName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SystemRoleM");
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.UserM", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateStatus")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateUpdated")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Department_Head")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsCantChangePass")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsChangePassOnLogin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPasswordNeverExpires")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Location")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LoginStatus")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -143,17 +322,80 @@ namespace IncidentManagement.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Role")
+                    b.Property<int>("RoleGroupId")
+                        .HasColumnType("int");
+
+                    b.PrimitiveCollection<string>("SiteCodes")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.PrimitiveCollection<string>("SiteIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("User_ID");
+                    b.HasKey("UserId");
 
-                    b.ToTable("Users_TBL");
+                    b.HasIndex("RoleGroupId");
+
+                    b.HasIndex("StatusId");
+
+                    b.ToTable("UserM");
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.RoleGroupDetailM", b =>
+                {
+                    b.HasOne("SharedLibrary.Models.ApplicationM", "Application")
+                        .WithMany()
+                        .HasForeignKey("ApplicationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SharedLibrary.Models.RoleGroupHeaderM", null)
+                        .WithMany("RoleGrpDetails")
+                        .HasForeignKey("RoleGroupHeaderMId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SharedLibrary.Models.SystemRoleM", "SystemRole")
+                        .WithMany()
+                        .HasForeignKey("SystemRoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Application");
+
+                    b.Navigation("SystemRole");
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.UserM", b =>
+                {
+                    b.HasOne("SharedLibrary.Models.RoleGroupHeaderM", "RoleGroup")
+                        .WithMany()
+                        .HasForeignKey("RoleGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SharedLibrary.Models.StatusM", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("RoleGroup");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.RoleGroupHeaderM", b =>
+                {
+                    b.Navigation("RoleGrpDetails");
                 });
 #pragma warning restore 612, 618
         }

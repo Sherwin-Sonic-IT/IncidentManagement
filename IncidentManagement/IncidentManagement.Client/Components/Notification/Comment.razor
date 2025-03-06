@@ -57,18 +57,16 @@
     [Parameter] public bool isCommentNotificationVisible { get; set; }
     [Parameter] public EventCallback<bool> isCommentNotificationVisibleChanged { get; set; }
     [Parameter] public EventCallback<int> UnreadCommentsMarkAsReadCountChanged { get; set; }
-
-    private string userRole;
-    private bool IsAdmin;
-    private int currentUserId;
-    private string currentUserName;
-    private string adminUsername = "Glenne";
-
     private List<Board_TBL> comments = new List<Board_TBL>();
-
     private List<IGrouping<int, Board_TBL>> groupedComments => comments
         .GroupBy(c => c.Incident_ID)  
         .ToList();
+
+    private int currentUserId;
+    private string currentUserName;
+    private string currentUserLocation;
+    private string userRole;
+    private bool IsAdmin;
 
     private FluentDialog? dialog;
     private bool _modal = true;
@@ -86,22 +84,25 @@
         await StartTimer();
     }
 
+    // private async Task UserAuthentication()
+    // {
+    //     var (userId, userName, location, role, isAdmin) = await AuthenticationService.AuthenticateUser();
+    //     currentUserId = userId;
+    //     currentUserName = userName;
+    //     currentUserLocation = location;
+    //     userRole = role;
+    //     IsAdmin = isAdmin;
+    // }
+
     private async Task UserAuthentication()
     {
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+        var (userId, userName, role, isAdmin, location) = await AuthenticationService.AuthenticateUser();
 
-        if (userIdClaim != null)
-        {
-            currentUserId = int.Parse(userIdClaim.Value);
-        }
-        else
-        {
-            currentUserId = 0;
-        }
-        currentUserName = user.Identity!.Name!;
-        IsAdmin = currentUserName == adminUsername;
+        currentUserId = userId;
+        currentUserName = userName;
+        currentUserLocation = location;
+        userRole = role;
+        IsAdmin = isAdmin;
     }
 
     private async Task LoadUnreadCommentsAsync()

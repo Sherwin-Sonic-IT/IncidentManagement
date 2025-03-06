@@ -41,6 +41,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\assets\dashboard\" />
+    <Folder Include="wwwroot\assets\users\" />
   </ItemGroup>
 
   <ItemGroup>

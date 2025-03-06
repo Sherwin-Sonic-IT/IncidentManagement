@@ -1,11 +1,15 @@
 ﻿@page "/dashboard"
 @rendermode @(new InteractiveAutoRenderMode(false))
-@attribute [Authorize(Roles = "Admin, User, Head")]
+@attribute [Authorize(Roles = "SysAdmin, User, Head")]
 
 
 <div class="dashboard__header">
     <h5 class="dashboard__header-title"><i class="bi bi-house-door-fill"></i>Dashboard</h5>
     <div>
+        @if(IsAdmin)
+        {
+            <button class="dashboard__header-sync-users-list" @onclick="SyscAllMasterDataWoProgress"><i class="bi bi-arrow-clockwise"></i>Sync Users</button>
+        }
         <a href="/incidents" class="dashboard__header-pending-incident">You have @pendingIncidentCount Pending Incident Reports</a>
         <label class="dashboard__header-date">@formattedDate</label>
     </div>
@@ -148,8 +152,12 @@
 
     private int pendingIncidentCount;
     private string userName;
-    private string userRole;
     private string formattedDate;
+    private int currentUserId;
+    private string currentUserName;
+    private string currentUserLocation;
+    private string userRole;
+    private bool IsAdmin;
 
     private bool isFilterOverAllVisible = false;
     private bool isFilterReportedByDeptVisible = false;
@@ -198,11 +206,12 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        userName = user.Identity?.Name;
+        userName = user!.Identity?.Name;
 
         var roleClaim = user?.FindFirst(ClaimTypes.Role);
         userRole = roleClaim?.Value ?? "No role assigned";
         formattedDate = DateTime.Now.ToString("dddd dd MMMM yyyy");
+
         var incidents = await IncidentService.GetAllIncidentsAsync();
         Incident = incidents.ToList();
         pendingIncidentCount = Incident.Count(i => i.Status == "Pending");
@@ -215,24 +224,31 @@
             .Take(5)
             .ToList();
         recentIncidentsList = completedIncidents;
-
-        // StateHasChanged();
     }
 
-   
+    private async Task UserAuthentication()
+    {
+        var (userId, userName, userRole, isAdmin, location) = await AuthenticationService.AuthenticateUser();
+
+        currentUserId = userId;
+        currentUserName = userName;
+        currentUserLocation = location;
+        userRole = userRole;
+        IsAdmin = isAdmin;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         await LoadIncidents();
         await FetchIncidentCountsForMonths();
-        CountIncidentsByPriority();
+        await UserAuthentication();
 
+        CountIncidentsByPriority();
         FilterIncidentData(selectedFilter);
         filterOverAllIncidentReport(selectedOverAllIncidentFilter);
         PrepareLineChartData(filteredOverAllIncidents);
         PrepareBarChartData(filteredIncidents);
         CountRecurringIncidentsByLocation(filteredIncidents);
-        // StateHasChanged();
     }
 
     private void ToggleFilterOverAll()
@@ -512,6 +528,85 @@
             Console.WriteLine($"Error rendering bar chart: {ex.Message}");
         }
     }
+
+
+    public async Task SyscAllMasterDataWoProgress()
+    {
+        var systemRole = await mdApiSvc.GetAllSystemRole();
+        foreach (var item in systemRole)
+        {
+            var newObj = new SystemRoleM()
+                {
+                    RoleCode = item.RoleCode,
+                    RoleName = item.RoleName,
+                };
+            await sysRoleSvc.CreateUpdateObj(newObj);
+        }
+        var appsApi = await mdApiSvc.GetAllApplication();
+        foreach (var item in appsApi)
+        {
+            var newObj = new ApplicationM()
+                {
+                    Abbreviation = item.Abbreviation,
+                    Name = item.Name,
+                    Status = item.Status,
+                    IP = item.IP,
+                    Port = item.Port,
+                };
+            await appSvc.CreateUpdateObj(newObj);
+        }
+        var roleApi = await mdApiSvc.GetAllRoleGrpHeader();
+        foreach (var item in roleApi)
+        {
+            var newObj = new RoleGroupHeaderM()
+                {
+                    RoleCode = item.RoleCode,
+                    RoleName = item.RoleName,
+                    DateCreated = item.DateCreated,
+                };
+            await roleGrpSvc.CreateUpdateObj(newObj);
+        }
+        var roleDetApi = await mdApiSvc.GetAllRoleGrpDetail();
+        foreach (var item in roleDetApi)
+        {
+            var newObj = new RoleGroupDetailM()
+                {
+                    RoleGroupHeaderMId = item.RoleGroupHeaderMId,
+                    ApplicationId = item.ApplicationId,
+                    SystemRoleId = item.SystemRoleId,
+                    DateCreated = item.DateCreated,
+                };
+            await roleGrpDetSvc.CreateUpdateObj(newObj);
+        }
+
+        var userApi = await mdApiSvc.GetAllUsers();
+        foreach (var item in userApi)
+        {
+            var newObj = new UserM()
+                {
+                    UserId = item.UserId,
+                    FullName = item.FullName,
+                    Username = item.Username,
+                    Password = item.Password,
+                    StatusId = item.StatusId,
+                    LoginStatus = item.LoginStatus,
+                    RoleGroupId = item.RoleGroupId,
+                    DateCreated = item.DateCreated,
+                    DateStatus = item.DateStatus,
+                    DateUpdated = item.DateUpdated,
+                    SiteCodes = item.SiteCodes,
+                    SiteIds = item.SiteIds,
+                    IsChangePassOnLogin = item.IsChangePassOnLogin,
+                    IsCantChangePass = item.IsCantChangePass,
+                    IsPasswordNeverExpires = item.IsPasswordNeverExpires,
+                    ExpiryDate = item.ExpiryDate,
+                    Department_Head = item.Department_Head ?? "Default Department Head",
+                    Location = item.Location ?? "Default Location"
+                };
+            await userSvc.CreateUpdateObj(newObj);
+        }
+    }
+
 }
 
 

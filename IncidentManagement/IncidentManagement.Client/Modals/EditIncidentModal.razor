@@ -192,7 +192,7 @@
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        IsAdmin = user.IsInRole("Admin");
+        IsAdmin = user.IsInRole("SysAdmin");
     }
 
     protected override async Task OnParametersSetAsync()

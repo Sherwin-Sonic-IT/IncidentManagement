@@ -672,6 +672,9 @@
     z-index: 10;
     transition: top 0.75s ease-in-out;
 }
+.view__incident__detail__fullscreen-right .view__incident__detail-cta-support {
+    box-shadow: none;
+}
 
 
 

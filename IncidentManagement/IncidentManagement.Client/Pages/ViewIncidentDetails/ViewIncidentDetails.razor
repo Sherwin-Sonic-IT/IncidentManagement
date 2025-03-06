@@ -1,5 +1,5 @@
 ﻿@page "/view-incident-details/{Incident_ID:int}"
-@attribute [Authorize(Roles = "Admin, User, Head")]
+@attribute [Authorize(Roles = "SysAdmin, User, Head")]
 @rendermode @(new InteractiveAutoRenderMode(false))
 @implements IDisposable
 
@@ -53,6 +53,7 @@
                 ("Incident Name", Incident.Incident_Name),
                 ("Category", Incident.Category),
                 ("Priority Level", Incident.Priority),
+                ("Resolver From", Incident.Resolver_From_Dept),
                 ("Resolver Name", Incident.Resolver_Name)
                    })
                     {
@@ -229,15 +230,15 @@
                                 <i class="bi bi-dash-lg close-fullscreen" @onclick="ToggleCommentFormFullScreen"></i>
                             </h3>
 
-                            @foreach (var user in new[] { new { Name = "Glenne", Role = "Admin", DepartmentHead = false },
-                    new { Name = Incident.Department_Head, Role = "User", DepartmentHead = true } })
+                            @foreach (var user in new[] { new { Name = "IT Admin", Role = "SysAdmin", UserRole = false },
+                    new { Name = Incident.Reported_By, Role = "User", UserRole = true } })
                             {
                                 <div class="view__incident__detail__fullscreen-users">
                                     <img src="\assets\requesterphoto\person.jpg" class="view__incident__detail__comment-image" />
                                     <div class="view__incident__detail__fullscreen-user-info">
                                         <div class="view__incident__detail__fullscreen__user__info-username">
                                             <p class="view__incident__detail__fullscreen__user__info__username-username">
-                                                @(user.DepartmentHead ? Incident.Department_Head : user.Name)
+                                                @(user.UserRole ? Incident.Reported_By : user.Name)
                                             </p>
                                             <div class="view__incident__detail__fullscreen__user-status">
                                                 <i class="bi bi-dot"></i>
@@ -334,11 +335,16 @@
     private List<Board_TBL> comments;
     private string newComment = string.Empty;
     private bool isCommentNotEmpty = false;
-    private string adminUsername = "Glenne";
-    private string userRole;
-    private bool IsAdmin { get; set; }
+    // private string userRole;
+    // private bool IsAdmin { get; set; }
+    // private int currentUserId;
+    // private string currentUserName;
+
     private int currentUserId;
     private string currentUserName;
+    private string currentUserLocation;
+    private string userRole;
+    private bool IsAdmin;
 
     private int Selected_ID { get; set; }
     private bool isEditIncidentModalFormVisible = false;
@@ -461,23 +467,13 @@
 
     private async Task UserAuthentication()
     {
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+        var (userId, userName, role, isAdmin, location) = await AuthenticationService.AuthenticateUser();
 
-        if (userIdClaim != null)
-        {
-            currentUserId = int.Parse(userIdClaim.Value);
-        }
-        else
-        {
-            currentUserId = 0;
-        }
-
-        currentUserName = user.Identity!.Name!;
-        IsAdmin = currentUserName == adminUsername;
-        var roleClaim = user?.FindFirst(ClaimTypes.Role);
-        userRole = roleClaim?.Value ?? "No role assigned";
+        currentUserId = userId;
+        currentUserName = userName;
+        currentUserLocation = location;
+        userRole = role;
+        IsAdmin = isAdmin;
     }
 
     private void ToggleEditIncidentModal(int Incident_ID)

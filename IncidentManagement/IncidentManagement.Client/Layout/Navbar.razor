@@ -1,6 +1,6 @@
 ﻿@rendermode @(new InteractiveAutoRenderMode(false))
 
-<AuthorizeView Roles="Admin, User, Head">
+<AuthorizeView Roles="SysAdmin, User, Head">
     <Authorized>
     <div class="navbar">
         <p class="navbar__logo">Incident Management (IM)</p>
@@ -53,11 +53,11 @@
     private const int RefreshInterval = 30000;
     private int newIncidentCount;
 
-    private string userRole;
-    private bool IsAdmin;
     private int currentUserId;
     private string currentUserName;
-    private string adminUsername = "Glenne";
+    private string currentUserLocation;
+    private string userRole;
+    private bool IsAdmin;
 
     private bool isNotificationVisible = false;
     private bool isCommentNotificationVisible = false;
@@ -91,26 +91,15 @@
         StateHasChanged();
     }
 
-
     private async Task UserAuthentication()
     {
-        var authState = await AuthenticationStateTask;
-        var user = authState.User;
-        var userIdClaim = user?.FindFirst(ClaimTypes.NameIdentifier);
+        var (userId, userName, role, isAdmin, location) = await AuthenticationService.AuthenticateUser();
 
-        if (userIdClaim != null)
-        {
-            currentUserId = int.Parse(userIdClaim.Value);
-        }
-        else
-        {
-            currentUserId = 0;
-        }
-
-        currentUserName = user.Identity!.Name!;
-        IsAdmin = currentUserName == adminUsername;
-        var roleClaim = user?.FindFirst(ClaimTypes.Role);
-        userRole = roleClaim?.Value ?? "No role assigned";
+        currentUserId = userId;
+        currentUserName = userName;
+        currentUserLocation = location;
+        userRole = role;
+        IsAdmin = isAdmin;
     }
 
     private async Task LoadUnreadCommentsAsync()

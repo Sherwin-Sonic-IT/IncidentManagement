@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FluentUI.AspNetCore.Components;
+using SharedLibrary.AuthenticationInterface;
 using SharedLibrary.Dictionaries;
 using SharedLibrary.Interfaces;
 
@@ -19,13 +20,24 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 builder.Services.AddFluentUIComponents();
 
-builder.Services.AddSingleton<IncidentFormDictionary>();
 
 // DB Connection 
 builder.Services.AddControllers();
 builder.Services.AddDbContextFactory<DataContext>(options => { options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection Not Found")); });
 builder.Services.AddScoped<IIncident, IncidentRepo>();
 builder.Services.AddScoped<IBoard, BoardRepo>();
+
+builder.Services.AddSingleton<IncidentFormDictionary>();
+builder.Services.AddScoped<IAuthenticationInterface, AuthenticationService>();
+
+builder.Services.AddScoped<IApplication, ApplicationRepo>();
+builder.Services.AddScoped<IMDApi, MDApiRepo>();
+builder.Services.AddScoped<IRoleGrpDetail, RoleGrpDetailRepo>();
+builder.Services.AddScoped<IRoleGrpHeader, RoleGrpHeaderRepo>();
+builder.Services.AddScoped<IUser, UserRepo>();
+builder.Services.AddScoped<ISystemRole, SystemRoleRepo>();
+
+
 builder.Services.AddScoped(http => new HttpClient
 {
     BaseAddress = new Uri(builder.Configuration.GetSection("BaseAddress").Value!)
@@ -54,7 +66,6 @@ builder.Services.AddCascadingAuthenticationState();
 //    options.EnableDetailedErrors = true;
 //    options.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10 MB
 //});
-
 
 
 var app = builder.Build();

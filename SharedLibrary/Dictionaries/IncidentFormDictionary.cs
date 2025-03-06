@@ -39,22 +39,22 @@
         public Dictionary<string, List<string>> ResolverIncidentName { get; } = new()
     {
         // Hardware Issues
-        { "Device Malfunction (printers, scanners, etc)", new List<string> { "Glenne" } },
-        { "Workstation /PC/Laptop Issues", new List<string> { "Glenne" } },
+        { "Device Malfunction (printers, scanners, etc)", new List<string> { "Glenne Panilagao" } },
+        { "Workstation /PC/Laptop Issues", new List<string> { "Glenne Panilagao" } },
         // Network Issues
-        { "Internet connectivity problems", new List<string> { "Glenne" } },
-        { "Slow network performance", new List<string> { "Glenne" } },
+        { "Internet connectivity problems", new List<string> { "Glenne Panilagao" } },
+        { "Slow network performance", new List<string> { "Glenne Panilagao" } },
         // User Account & Access Issues
         { "Password reset request", new List<string> { "Glenne" } },
-        { "Permissions/access control issues", new List<string> { "Glenne" } },
+        { "Permissions/access control issues", new List<string> { "Glenne Panilagao" } },
         // End-User Requests & Assistance
-        { "Software Installation", new List<string> { "Glenne" } },
+        { "Software Installation", new List<string> { "Glenne Panilagao" } },
          //WMS Issue
-         { "WMS Account Login Failure", new List<string> { "Froilan" } },
+         { "WMS Account Login Failure", new List<string> { "Froilan Estalilla" } },
         //ISR Issue
-        { "ISR Password reset request", new List<string> { "Emman" } },
+        { "ISR Password reset request", new List<string> { "Emman Imbod" } },
         // Transportation/Equipment Management
-        { "Flat Tires", new List<string> { "Aying" } },
+        { "Flat Tires", new List<string> { "Carlito Poliño" } },
     };
 
         public static readonly Dictionary<string, List<string>> LocationDepartments = new()
@@ -69,12 +69,12 @@
         public Dictionary<string, List<string>> DepartmentHeadLocationDepartment { get; } = new()
     {
         { "MAIN (SALES)", new List<string> { "Ruel" } },
-        { "MAIN (OPD)", new List<string> { "Carol" } },
+        { "MAIN (OPD)", new List<string> { "Caroline Genavia" } },
         { "MAIN (CASHIER)", new List<string> { "Mimie" } },
-        { "HR", new List<string> { "Joan" } },
+        { "HR", new List<string> { "Joanne Sumangil" } },
         { "IT", new List<string> { "Junix Chan" } },
-        { "LOGISTICS", new List<string> { "Christina" } },
-        { "DANA", new List<string> { "Bernz" } },
+        { "LOGISTICS", new List<string> { "Christina Selgas" } },
+        { "DANA", new List<string> { "Bernadeth Palang" } },
         //{ "DIGOS (SALES)", new List<string> { "Ethan" } },
         //{ "DIGOS (OPD)", new List<string> { "Liam" } },
         //{ "DIGOS (CASHIER)", new List<string> { "Lucas" } },
@@ -86,21 +86,42 @@
         //{ "COTABATO (CASHIER)", new List<string> { "Ava" } },
     };
 
-        public static readonly Dictionary<string, int> IncidentNameUserMap = new()
+
+
+        public static readonly Dictionary<string, (int UserId, string Department)> IncidentNameUserMap = new()
     {
         // IT
-        { "Device Malfunction (printers, scanners, etc)", 1 },
-        { "Workstation /PC/Laptop Issues", 1 },
-        { "Internet connectivity problems", 1},
-        { "Slow network performance", 1 },
-        { "Password reset request", 1 },
-        { "Permissions/access control issues", 1 },
-        { "Software Installation", 1 },
-        { "WMS Account Login Failure", 1 },
-        { "ISR Password reset request", 1 },
-        //Logistics
-        { "Flat Tires", 5 },
+        { "Device Malfunction (printers, scanners, etc)", (1, "IT") },
+        { "Workstation /PC/Laptop Issues", (1, "IT") },
+        { "Internet connectivity problems", (1, "IT") },
+        { "Slow network performance", (1, "IT") },
+        { "Password reset request", (1, "IT") },
+        { "Permissions/access control issues", (1, "IT") },
+        { "Software Installation", (1, "IT") },
+        { "WMS Account Login Failure", (1, "IT") },
+        { "ISR Password reset request", (1, "IT") },
+    
+        // Logistics
+        { "Flat Tires", (50, "LOGISTICS") },
     };
+
+
+        //    public static readonly Dictionary<string, int> IncidentNameUserMap = new()
+        //{
+        //    // IT
+        //    { "Device Malfunction (printers, scanners, etc)", 1 },
+        //    { "Workstation /PC/Laptop Issues", 1 },
+        //    { "Internet connectivity problems", 1},
+        //    { "Slow network performance", 1 },
+        //    { "Password reset request", 1 },
+        //    { "Permissions/access control issues", 1 },
+        //    { "Software Installation", 1 },
+        //    { "WMS Account Login Failure", 1 },
+        //    { "ISR Password reset request", 1 },
+        //    //Logistics
+        //    { "Flat Tires", 50 },
+        //};
+
 
     }
 }
