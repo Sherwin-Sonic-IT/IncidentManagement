@@ -468,9 +468,24 @@
 
     private bool IsEditButtonDisabled(Incidents_TBL incident)
     {
+        if (incident.Department_Head == currentUserName && incident.Status == "Completed")
+        {
+            return true; 
+        }
+
+        if (incident.Department_Head == currentUserName && incident.Status == "Pending")
+        {
+              return false;            
+        }
         return (IsAdmin && incident.Status == "Completed") ||
                (!IsAdmin && (incident.Status == "Completed" || incident.User_ID != currentUserId));
     }
+
+    // private bool IsEditButtonDisabled(Incidents_TBL incident)
+    // {
+    //     return (IsAdmin && incident.Status == "Completed") ||
+    //            (!IsAdmin && (incident.Status == "Completed" || incident.User_ID != currentUserId));
+    // }
 
     private void HandleToastClosed(bool isClosed)
     {

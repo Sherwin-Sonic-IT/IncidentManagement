@@ -10,7 +10,7 @@
         {
             <button class="dashboard__header-sync-users-list" @onclick="SyscAllMasterDataWoProgress"><i class="bi bi-arrow-clockwise"></i>Sync Users</button>
         }
-        <a href="/incidents" class="dashboard__header-pending-incident">You have @pendingIncidentCount Pending Incident Reports</a>
+        <a href="/incidents" class="dashboard__header-pending-incident @(IsAdmin ? "" : "disabled__components-dashboard")"> Overall Pending Incidents (@pendingIncidentCount) </a>
         <label class="dashboard__header-date">@formattedDate</label>
     </div>
 </div>
@@ -124,7 +124,10 @@
             @foreach (var incident in recentIncidentsList)
             {
                 <div class="dashboard__incident__recent__incidents-item">
-                    <a href="/view-incident-details/@incident.Incident_ID" class="dashboard__incident__recent__incidents-name">@incident.Incident_Name</a>
+                    <a href="/view-incident-details/@incident.Incident_ID"
+                       class="dashboard__incident__recent__incidents-name @(IsAdmin ? "" : "disabled__components-dashboard")">
+                        @incident.Incident_Name
+                    </a>
                     <span class="dashboard__incident__recent__incidents-date">@incident.Date_Reported.ToString("MM/dd/yyyy")</span>
                 </div>
             }
@@ -529,7 +532,6 @@
         }
     }
 
-
     public async Task SyscAllMasterDataWoProgress()
     {
         var systemRole = await mdApiSvc.GetAllSystemRole();
@@ -540,8 +542,9 @@
                     RoleCode = item.RoleCode,
                     RoleName = item.RoleName,
                 };
-            await sysRoleSvc.CreateUpdateObj(newObj);
+            await sysRoleSvc.CreateUpdateObj(newObj); 
         }
+
         var appsApi = await mdApiSvc.GetAllApplication();
         foreach (var item in appsApi)
         {
@@ -553,8 +556,9 @@
                     IP = item.IP,
                     Port = item.Port,
                 };
-            await appSvc.CreateUpdateObj(newObj);
+            await appSvc.CreateUpdateObj(newObj); 
         }
+
         var roleApi = await mdApiSvc.GetAllRoleGrpHeader();
         foreach (var item in roleApi)
         {
@@ -564,8 +568,9 @@
                     RoleName = item.RoleName,
                     DateCreated = item.DateCreated,
                 };
-            await roleGrpSvc.CreateUpdateObj(newObj);
+            await roleGrpSvc.CreateUpdateObj(newObj);  
         }
+
         var roleDetApi = await mdApiSvc.GetAllRoleGrpDetail();
         foreach (var item in roleDetApi)
         {
@@ -576,12 +581,26 @@
                     SystemRoleId = item.SystemRoleId,
                     DateCreated = item.DateCreated,
                 };
-            await roleGrpDetSvc.CreateUpdateObj(newObj);
+            await roleGrpDetSvc.CreateUpdateObj(newObj);  
         }
 
         var userApi = await mdApiSvc.GetAllUsers();
         foreach (var item in userApi)
         {
+            var departmentHead = "N/A";
+            var location = "N/A";
+            if (UsersDictionary.UserLocationAndDepartmentHead.ContainsKey(item.FullName))
+            {
+                var (userLocation, userDepartmentHead) = UsersDictionary.UserLocationAndDepartmentHead[item.FullName];
+                location = userLocation;
+                departmentHead = userDepartmentHead;
+                Console.WriteLine($"Mapped {item.FullName} to Location: {location}, Department Head: {departmentHead}");
+            }
+            else
+            {
+                Console.WriteLine($"No mapping found for {item.FullName}. Using defaults.");
+            }
+
             var newObj = new UserM()
                 {
                     UserId = item.UserId,
@@ -600,10 +619,11 @@
                     IsCantChangePass = item.IsCantChangePass,
                     IsPasswordNeverExpires = item.IsPasswordNeverExpires,
                     ExpiryDate = item.ExpiryDate,
-                    Department_Head = item.Department_Head ?? "Default Department Head",
-                    Location = item.Location ?? "Default Location"
+                    Department_Head = departmentHead,  
+                    Location = location              
                 };
-            await userSvc.CreateUpdateObj(newObj);
+
+            await userSvc.CreateUpdateObj(newObj); 
         }
     }
 

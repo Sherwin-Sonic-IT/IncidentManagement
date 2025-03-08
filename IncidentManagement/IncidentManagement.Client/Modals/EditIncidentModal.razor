@@ -122,12 +122,14 @@
                         @if (isEditResolverName)
                         {
                             <InputSelect @bind-Value="IncidentModel.Resolver_Name" disabled="@(IsAdmin ? false : true)">
-                                <option value="Glenne">Glenne</option>
+                                <option value="Glenne Panilagao">Glenne Panilagao</option>
                                 <option value="Junix Chan">Junix Chan</option>
-                                <option value="Foilan">Froilan</option>
-                                <option value="Emman">Emman</option>
-                                <option value="Mae">Mae</option>
-                                <option value="Sherwin">Sherwin</option>
+                                <option value="Froilan Estalilla">Froilan Estalilla</option>
+                                <option value="Emman Imbod">Emman Imbod</option>
+                                <option value="Mae Mabasa">Mae Mabasa</option>
+                                <option value="Sherwin Mante">Sherwin Mante</option>
+                                <option value="Carlito Poliño">Carlito Poliño</option>
+                                <option value="TBD">TBD</option>
                             </InputSelect>
                         }
                         else
@@ -329,11 +331,49 @@
         await OnClose.InvokeAsync(null);
     }
 
+
     private async Task handleUpdate()
     {
+        Console.WriteLine($"Selected Resolver: {IncidentModel.Resolver_Name}");
         IncidentModel.Priority ??= IncidentModel.Category == "Others" ? "Others" : "Routine";
+        if (!string.IsNullOrEmpty(IncidentModel.Resolver_Name))
+        {
+            if (IncidentFormDictionary.ResolverToDepartment.ContainsKey(IncidentModel.Resolver_Name))
+            {
+                IncidentModel.Resolver_From_Dept = IncidentFormDictionary.ResolverToDepartment[IncidentModel.Resolver_Name];
+                Console.WriteLine($"Resolver department found: {IncidentModel.Resolver_From_Dept}");
+            }
+            else
+            {
+                IncidentModel.Resolver_From_Dept = "TBD";
+                Console.WriteLine("Resolver department not found. Setting to TBD.");
+            }
+        }
+        else
+        {
+            IncidentModel.Resolver_From_Dept = "TBD";
+            Console.WriteLine("No resolver selected. Setting department to TBD.");
+        }
+        Console.WriteLine($"Final Resolver From Dept before saving: {IncidentModel.Resolver_From_Dept}");
         ReturnIncident = await IncidentService.UpdateIncidentAsync(IncidentModel);
+        Console.WriteLine("Incident updated: " + (ReturnIncident != null ? "Success" : "Failed"));
         await OnUpdate.InvokeAsync(null);
         CloseModal();
     }
+
+
+
+
+
+
+
+
+
+    // private async Task handleUpdate()
+    // {
+    //     IncidentModel.Priority ??= IncidentModel.Category == "Others" ? "Others" : "Routine";
+    //     ReturnIncident = await IncidentService.UpdateIncidentAsync(IncidentModel);
+    //     await OnUpdate.InvokeAsync(null);
+    //     CloseModal();
+    // }
 }

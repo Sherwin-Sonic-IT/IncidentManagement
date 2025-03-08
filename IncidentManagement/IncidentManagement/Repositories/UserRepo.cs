@@ -138,6 +138,8 @@ namespace IncidentManagement.Repositories
                 model.IsCantChangePass = obj.IsCantChangePass;
                 model.IsPasswordNeverExpires = obj.IsPasswordNeverExpires;
                 model.ExpiryDate = obj.ExpiryDate;
+                model.Department_Head = obj.Department_Head;
+                model.Location = obj.Location;
                 await context.SaveChangesAsync();
             }
         }

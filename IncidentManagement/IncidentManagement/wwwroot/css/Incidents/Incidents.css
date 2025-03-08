@@ -48,7 +48,12 @@
     outline: none;
     padding: 0.5rem;
     margin: 0.25rem 0;
+    transition: 0.15s ease-in-out;
 }
+.incidents__sortBy-list button:hover {
+    color: var(--color-white);
+    background-color: var(--color-shadefofblue) !important;
+} 
 
 .incidents__cards {
     display: flex;
@@ -83,7 +88,7 @@
     border-bottom: 1px solid var(--color-lightGray);
     padding-bottom: 0.5rem;
 }
-.incidents__card:nth-last-child(4) {
+/*.incidents__card:nth-last-child(4) {
     border-top: 3px solid var(--color-lightCoral);
 }
 .incidents__card:nth-last-child(3) {
@@ -94,7 +99,7 @@
 }
 .incidents__card:nth-last-child(1) {
     border-top: 3px solid var(--color-darkGray);
-}
+}*/
 .incidents__card .bi {
     padding: 0.75rem 0.95rem;
     border-radius: 50px;

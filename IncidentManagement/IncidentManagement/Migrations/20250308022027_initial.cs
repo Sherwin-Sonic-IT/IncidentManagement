@@ -31,27 +31,6 @@ namespace IncidentManagement.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Board_TBL",
-                columns: table => new
-                {
-                    Comment_ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    User_ID = table.Column<int>(type: "int", nullable: false),
-                    Resolver_ID = table.Column<int>(type: "int", nullable: false),
-                    Incident_ID = table.Column<int>(type: "int", nullable: false),
-                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ImageVideoData = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    ParentCommentID = table.Column<int>(type: "int", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Board_TBL", x => x.Comment_ID);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Incidents_TBL",
                 columns: table => new
                 {
@@ -67,6 +46,7 @@ namespace IncidentManagement.Migrations
                     Date_Reported = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Reported_By = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Resolver_From_Dept = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Resolver_Dept_Head = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Resolver_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Priority = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(max)", nullable: true, defaultValue: "Pending")
@@ -117,6 +97,35 @@ namespace IncidentManagement.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SystemRoleM", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Board_TBL",
+                columns: table => new
+                {
+                    Comment_ID = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    User_ID = table.Column<int>(type: "int", nullable: false),
+                    Resolver_ID = table.Column<int>(type: "int", nullable: false),
+                    Incident_ID = table.Column<int>(type: "int", nullable: false),
+                    Resolver_DeptHead_ID = table.Column<int>(type: "int", nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Department_Head = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ImageVideoData = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    ParentCommentID = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Board_TBL", x => x.Comment_ID);
+                    table.ForeignKey(
+                        name: "FK_Board_TBL_Incidents_TBL_Incident_ID",
+                        column: x => x.Incident_ID,
+                        principalTable: "Incidents_TBL",
+                        principalColumn: "Incident_ID",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -205,6 +214,11 @@ namespace IncidentManagement.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Board_TBL_Incident_ID",
+                table: "Board_TBL",
+                column: "Incident_ID");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RoleGroupDetailM_ApplicationId",
                 table: "RoleGroupDetailM",
                 column: "ApplicationId");
@@ -237,13 +251,13 @@ namespace IncidentManagement.Migrations
                 name: "Board_TBL");
 
             migrationBuilder.DropTable(
-                name: "Incidents_TBL");
-
-            migrationBuilder.DropTable(
                 name: "RoleGroupDetailM");
 
             migrationBuilder.DropTable(
                 name: "UserM");
+
+            migrationBuilder.DropTable(
+                name: "Incidents_TBL");
 
             migrationBuilder.DropTable(
                 name: "ApplicationM");

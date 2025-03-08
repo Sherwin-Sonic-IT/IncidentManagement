@@ -65,6 +65,7 @@ namespace IncidentManagement.Repositories
             incident.Date_Reported = model.Date_Reported;
             incident.Reported_By = model.Reported_By;
             incident.Priority = model.Priority;
+            incident.Resolver_From_Dept = model.Resolver_From_Dept;
             incident.Resolver_Name = model.Resolver_Name;
             incident.Status = model.Status;
             await dbContext.SaveChangesAsync();

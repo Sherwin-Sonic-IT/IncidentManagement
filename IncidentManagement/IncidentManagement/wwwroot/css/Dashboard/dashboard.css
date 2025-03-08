@@ -7,8 +7,9 @@
 }
 .dashboard__header-sync-users-list {
     font-weight: 600 !important;
-    padding: 0.38rem 0.5rem;
+    padding: 0.33rem 0.5rem;
     margin-right: 0.5rem;
+    margin-top: -2px;
     border: none;
     border-left: 5px solid var(--color-green);
     outline: none;
@@ -37,7 +38,7 @@
 }
 .dashboard__header-date {
     font-weight: 600 !important;
-    padding: 0.5rem 0.75rem;
+    padding: 0.35rem 0.75rem;
     color: var(--color-darkmidnightblue);
     border-left: 5px solid var(--color-lightSkyBlue);
     background-color: var(--color-white);
@@ -509,4 +510,14 @@
     justify-content: flex-start;
     align-items: center;
     gap: 0.5rem;
+}
+
+
+
+
+
+/*disabled components */
+.disabled__components-dashboard {
+    pointer-events: none;
+    cursor: not-allowed;
 }

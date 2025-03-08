@@ -63,6 +63,12 @@ namespace IncidentManagement.Data
            .HasDefaultValue("Pending")     // Set default value
            .IsRequired(false);
 
+            modelBuilder.Entity<Board_TBL>()
+                .HasOne(b => b.Incident)
+                .WithMany() 
+                .HasForeignKey(b => b.Incident_ID) 
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<StatusM>().HasData(
             new StatusM { Id = 1, Status_Name = "Y", Status_Desc = "Active" },
             new StatusM { Id = 2, Status_Name = "N", Status_Desc = "Inactive" }

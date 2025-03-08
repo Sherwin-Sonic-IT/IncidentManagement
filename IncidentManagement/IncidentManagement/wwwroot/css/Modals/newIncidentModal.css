@@ -129,10 +129,10 @@
     color: var(--color-white);
     background-color: var(--color-darkmidnightblue);
 }
-.new__incident-modal-btn-save:hover {
+/*.new__incident-modal-btn-save:hover {
     color: var(--color-white);
     background-color: var(--color-darkmidnightblue) !important;
-}
+}*/
 .new__incident-modal-btn-cancel:hover {
     border: 1px solid var(--color-lightCoral) !important;
 }

@@ -97,7 +97,9 @@
                 {
                     <div class="view__incident__detail__comment__post">
                         <i class="bi bi-fullscreen" @onclick="ToggleCommentFormFullScreen"></i>
-                        @if ((Incident.Status != "Completed" && Incident.User_ID == currentUserId) || (IsAdmin && Incident.Status != "Completed"))
+                        @if ((Incident.Status == "Pending" &&
+                       (Incident.User_ID == currentUserId || Incident.Resolver_ID == currentUserId || Incident.Department_Head == currentUserName || Incident.Resolver_From_Dept == currentUserLocation || IsAdmin)))
+                        @* @if ((Incident.Status != "Completed" && Incident.User_ID == currentUserId) || (IsAdmin && Incident.Status != "Completed"))*@
                         {
                             <button @onclick="ToggleCommentForm" class="view__incident__detail__comment__post-btn">Comment</button>
                         }
@@ -132,12 +134,20 @@
                 }
             else
             {
-            <div class="view__incident__detail__no-comment @(isCommentFormVisible ? "hideNoComment": "")">
-            <p>No comment yet</p>
-            </div>
+                @if (Incident.Status != "Completed")
+                {
+                    <div class="view__incident__detail__no-comment @(isCommentFormVisible ? "hideNoComment" : "")">
+                        <p>No comment yet</p>
+                        </div>
+                    }else
+                    {
+                        <div class="view__incident__detail__no-comment @(isCommentFormVisible ? "hideNoComment" : "")">
+                            <p>No comment</p>
+                        </div>
+                    }
             }
                 @if ((Incident.Status == "Pending" &&
-               (Incident.User_ID == currentUserId || Incident.Resolver_ID == currentUserId || IsAdmin)))
+               (Incident.User_ID == currentUserId || Incident.Resolver_ID == currentUserId || Incident.Department_Head == currentUserName || Incident.Resolver_From_Dept == currentUserLocation || IsAdmin)))
                 {
                     <EditForm Model="@this" OnValidSubmit="PostComment">
                         <DataAnnotationsValidator />
@@ -225,20 +235,25 @@
                 <div class="view__incident__detail-fullscreen @(isCommentFormFullScreen ? "comment__form__fullscreen-open": "comment__form__fullscreen-closed")">
                     <div class="view__incident__detail__fullscreen-content">
                         <div class="view__incident__detail__fullscreen-left">
-                            <h3 class="view__incident__detail__fullscreen-incident-name">
+                            <h4 class="view__incident__detail__fullscreen-incident-name">
                                 @Incident.Incident_Name
                                 <i class="bi bi-dash-lg close-fullscreen" @onclick="ToggleCommentFormFullScreen"></i>
-                            </h3>
+                            </h4>
 
-                            @foreach (var user in new[] { new { Name = "IT Admin", Role = "SysAdmin", UserRole = false },
-                    new { Name = Incident.Reported_By, Role = "User", UserRole = true } })
+                            @foreach (var user in new[] {
+                            new { Name = "IT Admin", Role = "SysAdmin", UserRole = false },
+                            new { Name = Incident.Department_Head, Role = "Department Head", UserRole = true },
+                            new { Name = Incident.Resolver_Dept_Head, Role = "Department Head", UserRole = true },
+                            new { Name = Incident.Resolver_Name, Role = "Resolver", UserRole = true },
+                            new { Name = Incident.Reported_By, Role = "End/Affected-User", UserRole = true },
+                            })
                             {
                                 <div class="view__incident__detail__fullscreen-users">
                                     <img src="\assets\requesterphoto\person.jpg" class="view__incident__detail__comment-image" />
                                     <div class="view__incident__detail__fullscreen-user-info">
                                         <div class="view__incident__detail__fullscreen__user__info-username">
                                             <p class="view__incident__detail__fullscreen__user__info__username-username">
-                                                @(user.UserRole ? Incident.Reported_By : user.Name)
+                                                @(user.UserRole ? user.Name : user.Name) 
                                             </p>
                                             <div class="view__incident__detail__fullscreen__user-status">
                                                 <i class="bi bi-dot"></i>
@@ -250,10 +265,12 @@
                                 </div>
                             }
                         </div>
+
                         <div class="view__incident__detail__fullscreen-center">
                             <div class="view__incident__detail__fullscreen-form">
                                 <textarea rows="3" class="view__incident__detail__fullscreen-textarea" cols="10" maxlength="250" placeholder="Please provide any relevant information, observations, or suggestions regarding the incident. . ." @bind="newComment"></textarea>
-                                @if ((Incident.Status != "Completed" && Incident.User_ID == currentUserId) || (IsAdmin && Incident.Status != "Completed"))
+                                @if ((Incident.Status == "Pending" &&
+                               (Incident.User_ID == currentUserId || Incident.Resolver_ID == currentUserId || Incident.Department_Head == currentUserName || Incident.Resolver_From_Dept == currentUserLocation || IsAdmin)))
                                 {
                                     <div class="view__incident__detail__fullscreen__form-button">
                                         <button type="submit" class="view__incident__detail__fullscreen__form-submit" @onclick="PostComment">Submit</button>
@@ -335,10 +352,6 @@
     private List<Board_TBL> comments;
     private string newComment = string.Empty;
     private bool isCommentNotEmpty = false;
-    // private string userRole;
-    // private bool IsAdmin { get; set; }
-    // private int currentUserId;
-    // private string currentUserName;
 
     private int currentUserId;
     private string currentUserName;
@@ -437,28 +450,6 @@
         }
     }
 
-    // private async Task StartTimer()
-    // {
-    //     _timer = new Timer(RefreshInterval);
-    //     _timer.Elapsed += async (sender, e) =>
-    //     {
-    //         if (!isEditIncidentModalFormVisible)
-    //         {
-    //             await InvokeAsync(() => LoadComments());
-    //         }
-    //     };
-    //     _timer.Start();
-    // }
-
-    // private void StopTimer()
-    // {
-    //     if (_timer != null)
-    //     {
-    //         _timer.Stop();
-    //         _timer.Dispose();
-    //     }
-    // }
-
     private async Task IsRecurring()
     {
         isRecurringIncident = await IncidentService.IsIncidentRecurringAsync(
@@ -518,10 +509,11 @@
             {
                 User_ID = currentUserId,
                 Resolver_ID = currentUserId == incident!.Resolver_ID ? 0 : incident?.Resolver_ID ?? 0,
-                // Resolver_ID = incident!.Resolver_ID,
                 Incident_ID = Incident_ID,
                 Username = currentUserName,
+                Department_Head = incident!.Department_Head,
                 Comment = newComment!,
+                Resolver_DeptHead_ID = incident.Resolver_From_Dept == "IT" ? 0 : incident.Resolver_From_Dept == "LOGISTICS" ? 3 : 0,
                 CreatedAt = DateTime.Now,
                 ImageVideoData = imageVideoData,
                 ParentCommentID = parentCommentID

@@ -62,6 +62,7 @@ namespace SharedLibrary.Models
         public DateTime Date_Reported { get; set; }
         public string Reported_By { get; set; }
         public string Resolver_From_Dept { get; set; }
+        public string Resolver_Dept_Head { get; set; }
         public string Resolver_Name { get; set; }
         //[Required]
         //public string Resolver_Name { get; set; }

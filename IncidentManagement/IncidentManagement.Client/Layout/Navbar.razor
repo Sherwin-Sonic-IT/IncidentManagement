@@ -113,9 +113,13 @@
         }
         else
         {
-           comments = comments.Where(comment =>
-                comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId).ToList();
+            comments = comments.Where(comment =>
+            (comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId) ||
+            comment.Resolver_DeptHead_ID == currentUserId || comment.Department_Head == currentUserName).ToList();
             unreadCommentsCount = comments.Count();
+           // comments = comments.Where(comment =>
+           //      comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId).ToList();
+           //  unreadCommentsCount = comments.Count();
         }
         Console.WriteLine($"Filtered Comments Count: {comments.Count}");
         StateHasChanged();

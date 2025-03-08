@@ -117,8 +117,11 @@
         else
         {
             comments = comments.Where(comment =>
-            comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId)
-            .ToList();
+          (comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId) ||
+          comment.Resolver_DeptHead_ID == currentUserId || comment.Department_Head == currentUserName).ToList();
+            // comments = comments.Where(comment =>
+            // comment.ParentCommentID == currentUserId || comment.Resolver_ID == currentUserId)
+            // .ToList();
         }
         StateHasChanged();
     }

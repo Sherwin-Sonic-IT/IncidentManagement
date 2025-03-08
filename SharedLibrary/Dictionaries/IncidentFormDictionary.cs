@@ -45,7 +45,7 @@
         { "Internet connectivity problems", new List<string> { "Glenne Panilagao" } },
         { "Slow network performance", new List<string> { "Glenne Panilagao" } },
         // User Account & Access Issues
-        { "Password reset request", new List<string> { "Glenne" } },
+        { "Password reset request", new List<string> { "Glenne Panilagao" } },
         { "Permissions/access control issues", new List<string> { "Glenne Panilagao" } },
         // End-User Requests & Assistance
         { "Software Installation", new List<string> { "Glenne Panilagao" } },
@@ -88,21 +88,51 @@
 
 
 
-        public static readonly Dictionary<string, (int UserId, string Department)> IncidentNameUserMap = new()
+        public static readonly Dictionary<string, (int UserId, string Department, string DepartmentHead)> IncidentNameUserMap = new()
     {
         // IT
-        { "Device Malfunction (printers, scanners, etc)", (1, "IT") },
-        { "Workstation /PC/Laptop Issues", (1, "IT") },
-        { "Internet connectivity problems", (1, "IT") },
-        { "Slow network performance", (1, "IT") },
-        { "Password reset request", (1, "IT") },
-        { "Permissions/access control issues", (1, "IT") },
-        { "Software Installation", (1, "IT") },
-        { "WMS Account Login Failure", (1, "IT") },
-        { "ISR Password reset request", (1, "IT") },
-    
+        { "Device Malfunction (printers, scanners, etc)", (1, "IT", "Junix Chan") },
+        { "Workstation /PC/Laptop Issues", (1, "IT", "Junix Chan") },
+        { "Internet connectivity problems", (1, "IT", "Junix Chan") },
+        { "Slow network performance", (1, "IT", "Junix Chan") },
+        { "Password reset request", (1, "IT", "Junix Chan") },
+        { "Permissions/access control issues", (1, "IT", "Junix Chan") },
+        { "Software Installation", (1, "IT", "Junix Chan") },
+        { "WMS Account Login Failure", (1, "IT", "Junix Chan") },
+        { "ISR Password reset request", (1, "IT", "Junix Chan") },
+
         // Logistics
-        { "Flat Tires", (50, "LOGISTICS") },
+        { "Flat Tires", (50, "LOGISTICS", "Christina Selgas") },
+    };
+
+
+
+        //    public static readonly Dictionary<string, (int UserId, string Department)> IncidentNameUserMap = new()
+        //{
+        //    // IT
+        //    { "Device Malfunction (printers, scanners, etc)", (1, "IT") },
+        //    { "Workstation /PC/Laptop Issues", (1, "IT") },
+        //    { "Internet connectivity problems", (1, "IT") },
+        //    { "Slow network performance", (1, "IT") },
+        //    { "Password reset request", (1, "IT") },
+        //    { "Permissions/access control issues", (1, "IT") },
+        //    { "Software Installation", (1, "IT") },
+        //    { "WMS Account Login Failure", (1, "IT") },
+        //    { "ISR Password reset request", (1, "IT") },
+
+        //    // Logistics
+        //    { "Flat Tires", (50, "LOGISTICS") },
+        //};
+
+
+        public Dictionary<string, string> ResolverToDepartment { get; } = new()
+    {
+        { "Glenne Panilagao", "IT" },
+        { "Junix Chan", "IT" },
+        { "Froilan Estalilla", "IT" },
+        { "Emman Imbod", "IT" },
+        { "Mae Mabasa", "IT" },
+        { "Carlito Poliño", "LOGISTICS" },
     };
 
 

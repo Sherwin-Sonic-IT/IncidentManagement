@@ -27,15 +27,16 @@
                         </div>
                         <InputSelect @bind-Value="IncidentModel.Category" disabled="@(!string.IsNullOrEmpty(IncidentModel.Incident_Name))" required>
                             <option value="">--Select a category--</option>
-                            <option disabled>IT</option>
+                            <option disabled style="background-color: #e5e4e2; color: darkblue">IT RELATED INCIDENT</option>
                             <option value="Hardware Issues">Hardware Issues</option>
                             <option value="Network & Connectivity Issues">Network & Connectivity Issues</option>
                             <option value="User Account & Access Issues">User Account & Access Issues</option>
                             <option value="End-User Requests & Assistance">End-User Requests & Assistance</option>
                             <option value="WMS Issue">WMS Issue</option>
                             <option value="ISR Issue">ISR Issue</option>
-                            <option disabled>LOGISTIC</option>
+                            <option disabled style="background-color: #e5e4e2; color: darkblue">LOGISTIC RELATED INCIDENT</option>
                             <option value="Transportation/Equipment Management">Transportation/Equipment Management</option>
+                            <option disabled style="background-color: #e5e4e2; color: darkblue">OTHERS RELATED INCIDENT</option>
                             <option value="Others">Others</option>
                         </InputSelect>
                     </div>
@@ -290,6 +291,7 @@
     private async Task HandleSave()
     {
         await UserAuthentication();
+
         if (IncidentModel.Incident_ID == 0)
         {
             IncidentModel.User_ID = currentUserId;
@@ -304,14 +306,57 @@
             if (!string.IsNullOrEmpty(IncidentModel.Incident_Name) && IncidentFormDictionary.IncidentNameUserMap.ContainsKey(IncidentModel.Incident_Name))
             {
                 var mapping = IncidentFormDictionary.IncidentNameUserMap[IncidentModel.Incident_Name];
-                IncidentModel.Resolver_ID = mapping.UserId; 
+                IncidentModel.Resolver_ID = mapping.UserId;  
                 IncidentModel.Resolver_From_Dept = mapping.Department; 
+                IncidentModel.Resolver_Dept_Head = mapping.DepartmentHead;
             }
-            ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
+            else
+            {
+                IncidentModel.Resolver_From_Dept = "TBD";
+                IncidentModel.Department_Head = "TBD"; 
+            }
         }
+        ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
         await OnSave.InvokeAsync(null);
         CloseModal();
     }
+
+
+
+    // private async Task HandleSave()
+    // {
+    //     await UserAuthentication();
+
+    //     if (IncidentModel.Incident_ID == 0)  
+    //     {
+    //         IncidentModel.User_ID = currentUserId;
+    //         IncidentModel.Reported_By = currentUsername;
+    //         IncidentModel.Location = currentUserDepartment;
+    //         IncidentModel.Department_Head = currentUserDepartmentHead;
+    //         IncidentModel.Priority ??= IncidentModel.Category == "Others" ? "Others" : "Routine";
+
+    //         if (IncidentModel.Category == "Others")
+    //         {
+    //             IncidentModel.Resolver_Name = string.IsNullOrEmpty(IncidentModel.Resolver_Name) ? "TBD" : IncidentModel.Resolver_Name;
+    //         }
+
+    //         if (!string.IsNullOrEmpty(IncidentModel.Incident_Name) && IncidentFormDictionary.IncidentNameUserMap.ContainsKey(IncidentModel.Incident_Name))
+    //         {
+    //             var mapping = IncidentFormDictionary.IncidentNameUserMap[IncidentModel.Incident_Name];
+    //             IncidentModel.Resolver_ID = mapping.UserId;
+    //             IncidentModel.Resolver_From_Dept = mapping.Department;
+    //         }
+    //         else
+    //         {
+    //             IncidentModel.Resolver_From_Dept = "TBD";  
+    //         }
+    //     }
+
+    //     ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
+
+    //     await OnSave.InvokeAsync(null);
+    //     CloseModal();
+    // }
 
 
     // private async Task HandleSave()
@@ -330,7 +375,9 @@
     //         }
     //         if (!string.IsNullOrEmpty(IncidentModel.Incident_Name) && IncidentFormDictionary.IncidentNameUserMap.ContainsKey(IncidentModel.Incident_Name))
     //         {
-    //             IncidentModel.Resolver_ID = IncidentFormDictionary.IncidentNameUserMap[IncidentModel.Incident_Name];
+    //             var mapping = IncidentFormDictionary.IncidentNameUserMap[IncidentModel.Incident_Name];
+    //             IncidentModel.Resolver_ID = mapping.UserId; 
+    //             IncidentModel.Resolver_From_Dept = mapping.Department; 
     //         }
     //         ReturnIncident = await IncidentService.AddIncidentAsync(IncidentModel);
     //     }

@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace IncidentManagement.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250306032024_initial")]
+    [Migration("20250308022027_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -72,6 +72,10 @@ namespace IncidentManagement.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Department_Head")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<byte[]>("ImageVideoData")
                         .HasColumnType("varbinary(max)");
 
@@ -79,6 +83,9 @@ namespace IncidentManagement.Migrations
                         .HasColumnType("int");
 
                     b.Property<int?>("ParentCommentID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Resolver_DeptHead_ID")
                         .HasColumnType("int");
 
                     b.Property<int>("Resolver_ID")
@@ -96,6 +103,8 @@ namespace IncidentManagement.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Comment_ID");
+
+                    b.HasIndex("Incident_ID");
 
                     b.ToTable("Board_TBL");
                 });
@@ -135,6 +144,10 @@ namespace IncidentManagement.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Reported_By")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Resolver_Dept_Head")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -350,6 +363,17 @@ namespace IncidentManagement.Migrations
                     b.HasIndex("StatusId");
 
                     b.ToTable("UserM");
+                });
+
+            modelBuilder.Entity("SharedLibrary.Models.Board_TBL", b =>
+                {
+                    b.HasOne("SharedLibrary.Models.Incidents_TBL", "Incident")
+                        .WithMany()
+                        .HasForeignKey("Incident_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Incident");
                 });
 
             modelBuilder.Entity("SharedLibrary.Models.RoleGroupDetailM", b =>
